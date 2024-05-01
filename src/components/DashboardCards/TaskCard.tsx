@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Card,
   CardContent,
@@ -9,31 +10,42 @@ import {
   Chip,
 } from '@mui/material';
 import './taskcard.css';
-import { TaskCardProps } from '../../types/TaskCardProps';  // Import the TaskCardProps type
+import { TaskCardProps } from '../../types/TaskCardProps';
 
+const TaskCardDashboard: React.FC = () => {
+  const [tasks, setTasks] = useState([]);
 
-const initialTasks = [
-  { id: 1, title: 'Feed Chickens', subtasks: ['Morning Feed', 'Evening Feed'], severity: 'high', completed: false },
-  { id: 2, title: 'Irrigation', subtasks: ['Check Pipes', 'Water Fields'], severity: 'medium', completed: false },
-  { id: 3, title: 'Harvest Corn', subtasks: ['Harvest Corn', 'Store Corn'], severity: 'low', completed: false },
-  { id: 4, title: 'Plant Wheat', subtasks: ['Prepare Soil', 'Plant Seeds'], severity: 'high', completed: false },
-  // Add more initial tasks here
-];
-
-const TaskCardDashboard: React.FC= () => {
-    const [tasks, setTasks] = useState(initialTasks);
-  
-    const toggleTaskCompletion = (taskId) => {
-      // Map through tasks and toggle the `completed` status of the task with the matching id
-      const updatedTasks = tasks.map(task => {
-        if (task.id === taskId) {
-          return { ...task, completed: !task.completed }; // Toggle completed status
-        }
-        return task; // Return the task unmodified if it does not match the id
+  useEffect(() => {
+    // Fetch tasks from the API when the component mounts
+    axios
+      .get('http://127.0.0.1:8000/api/tasks/')
+      .then((response) => {
+        // Update the tasks state with the fetched data
+        setTasks(response.data);
+      })
+      .catch((error) => {
+        console.error('Error fetching tasks:', error);
       });
-  
-      setTasks(updatedTasks); // Update the tasks state with the new array
-    };
+  }, []);
+
+  const toggleTaskCompletion = (taskId, completed) => {
+    
+    // Send an HTTP PATCH request to update the task's completion status
+    axios
+      .patch(`http://127.0.0.1:8000/api/tasks/${taskId}/`, { completed })
+      .then((response) => {
+        // Update the tasks state with the updated task data
+        const updatedTask = response.data;
+        const updatedTasks = tasks.map((task) =>
+          task.id === taskId ? updatedTask : task
+        );
+        setTasks(updatedTasks);
+      })
+      .catch((error) => {
+        console.error('Error updating task completion status:', error);
+      });
+  };
+
   return (
     <Card className="farm-tasks-card">
       <CardContent>
@@ -43,7 +55,7 @@ const TaskCardDashboard: React.FC= () => {
             <ListItem key={task.id} className="task-item">
               <Checkbox
                 checked={task.completed}
-                onChange={() => toggleTaskCompletion(task.id)}
+                onChange={() => toggleTaskCompletion(task.id, !task.completed)}
                 color="primary"
                 className="task-checkbox"
               />
