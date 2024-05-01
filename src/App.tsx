@@ -11,6 +11,7 @@ import PageTitle from './components/PageTitle';
 import EmployeePage from './pages/EmployeePage/EmployeePage';
 import SignIn from './pages/Authentication/SignIn';
 import SignUp from './pages/Authentication/SignUp';
+import VehiclePage from './pages/VehicleManagement/VehiclePage';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -71,6 +72,15 @@ function App() {
             <>
               <PageTitle title="Employee Management | Ag-Desk" />
               <EmployeePage />
+            </>
+          }
+        />
+        <Route
+          path="/VehiclePage"
+          element={
+            <>
+              <PageTitle title="Vehicle Management | Ag-Desk" />
+              <VehiclePage />
             </>
           }
         />

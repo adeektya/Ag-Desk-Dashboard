@@ -32,6 +32,7 @@ import {
   deleteEmployee,
   API_URL,
 } from './api';
+import "./employeepage.css"
 
 const EmployeePage = () => {
   const theme = useTheme();
@@ -223,7 +224,7 @@ const EmployeePage = () => {
         startIcon={<AddIcon />}
         onClick={() => setOpen(true)}
         sx={{ mb: 2 }}
-        className="custom-button"
+        className="mui-button custom-button" 
       >
         Add Employee
       </Button>
@@ -235,6 +236,9 @@ const EmployeePage = () => {
           rows={employees}
           columns={columns}
           autoPageSize
+          pagination
+          filterMode='server'
+          sortingMode='server'
           checkboxSelection
           getRowId={(row) => row.employee_id}
         />

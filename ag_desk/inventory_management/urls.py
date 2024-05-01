@@ -1,7 +1,7 @@
 from django.urls import path
-from .views import InventoryItemList, InventoryItemDetail
+from .views import InventoryItemList, InventoryDetail
 
 urlpatterns = [
     path('', InventoryItemList.as_view(), name='inventory-list'),
-    path('<int:pk>/', InventoryItemDetail.as_view(), name='inventory-detail'),
+    path('<int:id>/', InventoryDetail.as_view(), name='inventory-detail'),  # Corrected route
 ]

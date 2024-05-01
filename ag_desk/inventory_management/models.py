@@ -1,8 +1,6 @@
 from django.db import models
 from django.conf import settings
 
-
-
 class InventoryItem(models.Model):
     TYPE_CHOICES = [
         ("seeds", "Seeds"),
@@ -10,12 +8,13 @@ class InventoryItem(models.Model):
         ("feed", "Feed"),
         ("tools", "Tools"),
         ("machinery", "Machinery"),
+        ("vehicles", "Vehicles"),
     ]
 
     STATUS_CHOICES = [
         ("operational", "Operational"),
-        ("needs repair", "Needs Repair"),
-        ("service due", "Service Due"),
+        ("needs repair", "Needs Repair"),  # Changed "needs repair" to match the choices
+        ("service due", "Service Due"), 
     ]
     name = models.CharField(max_length=255)
     item_type = models.CharField(max_length=50, choices=TYPE_CHOICES)
@@ -27,3 +26,4 @@ class InventoryItem(models.Model):
 
     def __str__(self):
         return self.name
+

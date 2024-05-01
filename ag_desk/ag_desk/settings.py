@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "employee_management",
     "inventory_management",
+    "vehicle_management",
 ]
 
 MIDDLEWARE = [

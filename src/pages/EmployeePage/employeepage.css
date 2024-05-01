@@ -1,88 +1,94 @@
 /* General styling */
 .mui-button {
-    border-radius: 20px;
+  border-radius: 20px !important;
+}
+
+.mui-dialog {
+  border-radius: 20px;
+}
+
+.mui-textfield {
+  margin-bottom: 10px;
+}
+
+/* DataGrid styling */
+.data-grid-container {
+  border: none;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Row & Cell styling */
+.MuiDataGrid-row {
+  background-color: #ffffff; /* White background for rows */
+ 
+}
+
+.MuiDataGrid-row:hover {
+  background-color:  #f5f5f5;; /* Hover effect on rows */
+}
+
+.MuiDataGrid-cell {
+  border-bottom: 1px solid #e0e0e0; /* Cleaner, lighter cell borders */
+}
+
+
+
+
+
+/* Avatar styling */
+.avatar-cell .MuiAvatar-root {
+  width: 30px;
+  height: 30px;
+  margin-right: 8px;
+}
+
+/* Action buttons styling */
+.action-cell .MuiIconButton-root {
+  margin-right: 8px;
+}
+
+.action-cell .MuiIconButton-root:hover {
+  background-color: #e0e0e0;  /* Hover effect on action buttons */
+}
+
+/* Add/Edit dialog styling */
+.dialog-content {
+  padding: 20px;
+  .MuiFormControl-root {
+    margin-bottom: 16px;
   }
-  
-  .mui-dialog {
-    border-radius: 20px;
-  }
-  
-  .mui-textfield {
-    margin-bottom: 10px;
-  }
-  
-  /* DataGrid styling */
-  .data-grid-container {
-    border: none;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  
-  /* Row & Cell styling */
-  .MuiDataGrid-row {
-    &:hover {
-      background-color: #f5f5f5; /* Slight hover effect on rows */
-    }
-  }
-  
-  .MuiDataGrid-cell {
-    border-bottom: 1px solid #e0e0e0; /* Cleaner, lighter cell borders */
-  }
-  
-  /* Avatar styling */
-  .avatar-cell {
-    display: flex;
-    align-items: center;
-    justify-content: start;
-    .MuiAvatar-root {
-      width: 30px;
-      height: 30px;
-    }
-  }
-  
-  /* Action buttons styling */
-  .action-cell {
-    .MuiIconButton-root {
-      margin-right: 8px;
-      &:hover {
-        background-color: #e0e0e0; /* Slight hover effect on buttons */
-      }
-    }
-  }
-  
-  /* Add/Edit dialog styling */
-  .dialog-content {
-    padding: 20px;
-    .MuiFormControl-root {
-      margin-bottom: 16px;
-    }
-  }
-  
-  .dialog-actions {
-    margin-top: 20px;
-    padding-right: 24px;
-    padding-bottom: 20px;
-  }
-  
-  /* Custom file input styling */
-  .custom-file-input {
-    border: 1px solid #ccc;
-    display: inline-block;
-    padding: 6px 12px;
-    cursor: pointer;
-    border-radius: 20px;
-    margin-top: 10px;
-  }
-  
-  /* Button styling */
-  .custom-button {
-    background-color: #1a73e8; /* Primary color */
-    color: #fff;
-    padding: 10px 20px;
-    text-transform: none;
-    &:hover {
-      background-color: #1765c1;
-    }
-  }
-  
+}
+
+.MuiFormControl-root {
+  margin-bottom: 16px;
+}
+
+.dialog-actions {
+  margin-top: 20px;
+  padding-right: 24px;
+  padding-bottom: 20px;
+}
+
+/* Custom file input styling */
+.custom-file-input {
+  border: 1px solid #ccc;
+  display: inline-block;
+  padding: 6px 12px;
+  cursor: pointer;
+  border-radius: 20px;
+  margin-top: 10px;
+}
+
+/* Button styling */
+.custom-button {
+  background-color: #1a73e8 !important; /* Primary color */
+  color: #fff !important;
+  padding: 10px 20px !important;
+  text-transform: none !important;
+}
+
+.custom-button:hover {
+  background-color: #0d47a1 !important;  /* Darker primary color on hover */
+}

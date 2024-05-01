@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/', include('farm_management.urls')),  
     path('', include('farm_management.auth_urls')),  # Authentication routes directly under root
     path('employee/', include('employee_management.urls')),  
-    path('inventory/', include('inventory_management.urls')),  
+    path('inventory/', include('inventory_management.urls')),
+    path ('vehicle/', include('vehicle_management.urls')), 
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

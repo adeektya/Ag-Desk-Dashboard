@@ -6,6 +6,7 @@ import LayersIcon from '@mui/icons-material/Layers';
 import PeopleIcon from '@mui/icons-material/People';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import CarRepairIcon from '@mui/icons-material/CarRepair';
 import './sidebar.css';
 
 const icons = {
@@ -14,6 +15,7 @@ const icons = {
   Tasks: <LayersIcon />,
   Inventory: <Inventory2Icon />,
   Employees: <PeopleIcon />,
+  Vehicles: <CarRepairIcon />,
 };
 
 interface SidebarProps {
@@ -209,6 +211,15 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </NavLink>
 
               {/* <!-- Menu Item Employee --> */}
+              <NavLink
+              to="/VehiclePage"
+              className={getNavLinkClass('/vehicle')}
+              
+              >
+                {icons.Vehicles}
+                <span className="link-text">Vehicles</span>
+               
+              </NavLink>
             </ul>
           </div>
         </nav>
