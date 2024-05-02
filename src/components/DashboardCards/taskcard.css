@@ -64,4 +64,24 @@
     background-color: #2ed573;
     color: white;
   }
+ .task-details{
+  display: grid;
+  justify-content: end;
+  margin-right: 10px;
   
+ }
+ 
+ @media (max-width: 768px) {
+  .task-details {
+    justify-content: center;
+    margin-right: 5px;
+  }
+}
+
+/* For mobile phones */
+@media (max-width: 480px) {
+  .task-details {
+    justify-content: start;
+    margin-right: 2px;
+  }
+}

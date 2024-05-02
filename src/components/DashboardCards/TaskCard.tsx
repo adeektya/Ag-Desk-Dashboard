@@ -61,7 +61,7 @@ const TaskCardDashboard: React.FC = () => {
               />
               <ListItemText
                 primary={task.title}
-                secondary={task.subtasks.join(', ')}
+                secondary={task.subtasks.map((subtask) => subtask.description).join(', ')}
                 className={`task-text ${task.completed ? 'completed' : ''} ${
                   task.severity
                 }`}
