@@ -27,5 +27,4 @@ dist-ssr
 *.sw?
 
 # Byte-compiled / optimized / DLL files
-__pycache__/
-migrations
+__pycache__

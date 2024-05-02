@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb.js';
 import DefaultLayout from '../../layout/DefaultLayout';
-import TaskCard from '../../components/KanbanTaskCard/TaskCard.js';
-import Drag from '../../js/drag.js';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +20,10 @@ import {
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import './taskkanban.css';
 import axios from 'axios';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import SwimLane from '../../components/Swimlanes/SwimLane.js';
+import { fetchEmployees } from '../EmployeePage/api.js';
 
 interface TaskDetails {
   type: string;
@@ -29,81 +31,14 @@ interface TaskDetails {
   severity: string;
   image: File | null;
   subtasks: { description: string }[];
+  assignedEmployee: string; // Add this property
+  dueDate?: string; // Add this property
 }
 
 interface FormErrors {
   type: string;
   title: string;
   severity: string;
-}
-
-{
-  /*const initialKanbanData = {
-  todo: {
-    title: "To Do's",
-    count: 3,
-    tasks: [
-      {
-        title: 'Task One',
-        severity: 'High' as 'High' | 'Medium' | 'Low',
-        tasks: [
-          { description: 'Subtask 1', checked: false },
-          { description: 'Subtask 2', checked: true },
-          { description: 'Subtask 3', checked: false },
-        ],
-      },
-      {
-        title: 'Task Two',
-        severity: 'Medium' as 'High' | 'Medium' | 'Low',
-        tasks: [
-          { description: 'Subtask 4', checked: false },
-          { description: 'Subtask 5', checked: true },
-        ],
-      },
-      // More tasks can be added here
-    ],
-  },
-  inProgress: {
-    title: 'In Progress',
-    count: 1,
-    tasks: [
-      {
-        title: 'Task in progress',
-        severity: 'Low' as 'High' | 'Medium' | 'Low',
-        tasks: [{ description: 'Subtask 6', checked: true }],
-      },
-    ],
-  },
-  onHold: {
-    title: 'On Hold',
-    count: 2,
-    tasks: [
-      {
-        title: 'This is a big task name for tasks on hold',
-        severity: 'High' as 'High' | 'Medium' | 'Low',
-        imageSrc: '/images/task/task-01.jpg',
-        tasks: [{ description: 'Subtask 7', checked: false }],
-      },
-      {
-        title: 'Task',
-        severity: 'Medium' as 'High' | 'Medium' | 'Low',
-        imageSrc: '/images/task/task-01.jpg',
-        tasks: [{ description: 'Subtask 8', checked: false }],
-      },
-    ],
-  },
-  completed: {
-    title: 'Completed',
-    count: 1,
-    tasks: [
-      {
-        title: 'Completed Task',
-        severity: 'Low' as 'High' | 'Medium' | 'Low',
-        tasks: [{ description: 'Final Subtask', checked: true }],
-      },
-    ],
-  },
-}; */
 }
 
 const TaskKanban: React.FC = () => {
@@ -125,9 +60,71 @@ const TaskKanban: React.FC = () => {
     severity: '',
     image: null,
     subtasks: [{ description: '' }],
+    assignedEmployee: '',
+  });
+  const [employees, setEmployees] = useState([]);
+
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+  const [editTaskDetails, setEditTaskDetails] = useState<TaskDetails>({
+    type: 'todo',
+    title: '',
+    severity: '',
+    image: null,
+    dueDate: '',
+    subtasks: [{ description: '' }],
+    assignedEmployee: '',
   });
 
+  const handleEditTask = (taskId: number) => {
+    const taskToEdit = findTaskById(taskId);
+    if (taskToEdit) {
+      setEditingTaskId(taskId);
+      setEditTaskDetails({
+        type: taskToEdit.status,
+        title: taskToEdit.title,
+        severity: taskToEdit.severity,
+        image: null,
+        dueDate: taskToEdit.due_date || '',
+        subtasks: taskToEdit.subtasks,
+        assignedEmployee: taskToEdit.assigned_employee,
+      });
+      setOpen(true);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: number) => {
+    try {
+      await axios.delete(`http://127.0.0.1:8000/api/tasks/${taskId}/`);
+      console.log('Task deleted successfully');
+      setKanbanData((prevState) => {
+        let newState = { ...prevState };
+        Object.keys(newState).forEach((status) => {
+          newState[status].tasks = newState[status].tasks.filter(
+            (task) => task.id !== taskId
+          );
+        });
+        return newState;
+      });
+    } catch (error) {
+      console.error('Error deleting task:', error.response?.data || error);
+    }
+  };
+
   useEffect(() => {
+    fetchEmployees()
+      .then((data) => {
+        setEmployees(data);
+      })
+      .catch((error) => {
+        console.error('Error fetching employees:', error);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = () => {
     axios
       .get('http://127.0.0.1:8000/api/tasks/')
       .then((response) => {
@@ -145,8 +142,7 @@ const TaskKanban: React.FC = () => {
         });
       })
       .catch((error) => console.error('Error fetching tasks:', error));
-    Drag();
-  }, []);
+  };
 
   const validateForm = (): boolean => {
     let errors: FormErrors = { type: '', title: '', severity: '' };
@@ -157,9 +153,66 @@ const TaskKanban: React.FC = () => {
     return !Object.values(errors).some((error) => error !== '');
   };
 
+  const onMoveTask = (taskId, newStatus) => {
+    const taskToUpdate = findTaskById(taskId);
+    if (taskToUpdate) {
+      const updatedTask = { ...taskToUpdate, status: newStatus };
+
+      axios
+        .put(`http://127.0.0.1:8000/api/tasks/${taskId}/`, updatedTask)
+        .then((response) => {
+          console.log('Task updated successfully on the server.');
+          // Update the local state after the server update is successful
+          setKanbanData((prevState) => {
+            let newState = { ...prevState };
+            // Remove the task from its current status list
+            Object.keys(newState).forEach((status) => {
+              newState[status].tasks = newState[status].tasks.filter(
+                (task) => task.id !== taskId
+              );
+            });
+            // Add the task to the new status list
+            newState[newStatus].tasks.push(updatedTask);
+            return newState;
+          });
+        })
+        .catch((error) => {
+          console.error('Error updating task status:', error);
+          // Handle the error, show an error message, or revert the UI state
+        });
+    }
+  };
+
+  const updateLocalTaskState = (taskId, newStatus) => {
+    setKanbanData((prevState) => {
+      let newState = { ...prevState };
+      // Remove the task from its current status list
+      Object.keys(newState).forEach((status) => {
+        newState[status].tasks = newState[status].tasks.filter(
+          (task) => task.id !== taskId
+        );
+      });
+      // Add the task to the new status list
+      newState[newStatus].tasks.push({
+        ...findTaskById(taskId),
+        status: newStatus,
+      });
+      return newState;
+    });
+  };
+
+  const findTaskById = (taskId: number) => {
+    for (const status in kanbanData) {
+      const task = kanbanData[status].tasks.find((task) => task.id === taskId);
+      if (task) {
+        return task;
+      }
+    }
+    return null;
+  };
+
   useEffect(() => {
     console.log('Component mounted. Initial kanban data:', kanbanData);
-    Drag();
   });
   const handleClickOpen = () => {
     setOpen(true);
@@ -172,6 +225,7 @@ const TaskKanban: React.FC = () => {
       severity: '',
       image: null,
       subtasks: [{ description: '' }],
+      assignedEmployee: '',
     });
   };
   const handleSubtaskChange = (
@@ -203,254 +257,292 @@ const TaskKanban: React.FC = () => {
     }
   };
 
-  {
-    /*const handleAddTaskSubmit = () => {
-    if (!validateForm()) return;
-
-    if (!kanbanData[taskDetails.type]) {
-      console.error('Invalid task type:', taskDetails.type);
-      return; // Prevent the function from proceeding further
-    }
-    const updatedKanbanData = {
-      ...kanbanData,
-      [taskDetails.type]: {
-        ...kanbanData[taskDetails.type],
-        count: kanbanData[taskDetails.type].count + 1,
-        tasks: [
-          ...kanbanData[taskDetails.type].tasks,
-          {
-            title: taskDetails.title,
-            severity: taskDetails.severity,
-            imageSrc: taskDetails.image
-              ? URL.createObjectURL(taskDetails.image)
-              : undefined,
-            tasks: taskDetails.subtasks.map((subtask) => ({
-              description: subtask.description,
-              checked: false,
-            })),
-          },
-        ],
-      },
-    };
-
-    console.log('Updated kanban data:', updatedKanbanData);
-
-    setKanbanData(updatedKanbanData);
-    handleClose();
-    setTaskDetails({
-      type: '',
-      title: '',
-      severity: '',
-      image: null,
-      subtasks: [{ description: '' }],
-    });
-  }; */
-  }
-
   const handleAddTaskSubmit = async () => {
+    console.log('Submitting task:', taskDetails);
     if (!validateForm()) return;
-  
-    const newTask = {
+
+    const taskData = {
       title: taskDetails.title,
       status: taskDetails.type,
       severity: taskDetails.severity,
-      subtasks: taskDetails.subtasks.map(subtask => ({
+      assigned_employee: taskDetails.assignedEmployee,
+      due_date: taskDetails.dueDate,
+      subtasks: taskDetails.subtasks.map((subtask) => ({
         description: subtask.description,
-        completed: false, // Assuming new subtasks are not completed
+        completed: false,
       })),
     };
-  
-    if (taskDetails.image) {
-      alert('Image uploads with JSON payload are not supported. Please handle image uploads separately.');
-      return;
-    }
-  
+
     try {
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/tasks/',
-        JSON.stringify(newTask),
-        {
-          headers: {
-            'Content-Type': 'application/json',
+      if (editingTaskId) {
+        // Update existing task
+        const response = await axios.put(
+          `http://127.0.0.1:8000/api/tasks/${editingTaskId}/`,
+          JSON.stringify(taskData),
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        const updatedTask = response.data;
+        console.log('Task updated successfully:', updatedTask);
+        setKanbanData((prevState) => {
+          let newState = { ...prevState };
+          // Remove the task from its current swimlane
+          Object.keys(newState).forEach((status) => {
+            newState[status].tasks = newState[status].tasks.filter(
+              (task) => task.id !== editingTaskId
+            );
+          });
+          // Add the task to the new swimlane based on the updated status
+          newState[updatedTask.status].tasks.push(updatedTask);
+          return newState;
+        });
+      } else {
+        // Add new task
+        const response = await axios.post(
+          'http://127.0.0.1:8000/api/tasks/',
+          JSON.stringify(taskData),
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        const newTask = response.data;
+        console.log('Task added successfully:', newTask);
+        setKanbanData((prevState) => ({
+          ...prevState,
+          [newTask.status]: {
+            tasks: [...prevState[newTask.status].tasks, newTask],
           },
-        }
-      );
-      console.log('What is happening:', response.data);
-      const updatedTask = response.data;
-      const updatedTasks = { ...kanbanData };
-      updatedTasks[updatedTask.status].tasks.push(updatedTask);
-      setKanbanData(updatedTasks);
+        }));
+      }
       handleClose();
     } catch (error) {
-      console.error('Error adding task:', error.response?.data || error);
+      console.error(
+        'Error adding/updating task:',
+        error.response?.data || error
+      );
     }
   };
 
   return (
-    <DefaultLayout>
-      <div className="mx-auto max-w-5xl">
-        <Breadcrumb pageName="TaskManager" />
-        <div className="flex flex-col gap-y-4 rounded-xl border border-stroke bg-white p-3 shadow-default dark:border-strokedark dark:bg-boxdark sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="pl-2 text-title-lg font-semibold text-black dark:text-white">
-              Manage your Tasks
-            </h3>
-          </div>
-          <div className="flex flex-col gap-4 2xsm:flex-row 2xsm:items-center">
+    <DndProvider backend={HTML5Backend}>
+      <DefaultLayout>
+        <div className="task-manager">
+          <Breadcrumb pageName="TaskManager" />
+          <div className="flex flex-col gap-y-4 rounded-xl border border-stroke bg-white p-3 shadow-default dark:border-strokedark dark:bg-boxdark sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <Button
-                variant="contained"
-                className="button button-primary"
-                color="primary"
-                startIcon={<AddCircleOutlineIcon className="plus-icon" />}
-                onClick={handleClickOpen}
-              >
-                Add Task
-              </Button>
+              <h3 className="pl-2 text-title-lg font-semibold text-black dark:text-white">
+                Manage your Tasks
+              </h3>
+            </div>
+            <div className="flex flex-col gap-4 2xsm:flex-row 2xsm:items-center">
+              <div>
+                <Button
+                  variant="contained"
+                  className="button button-primary"
+                  color="primary"
+                  startIcon={<AddCircleOutlineIcon className="plus-icon" />}
+                  onClick={handleClickOpen}
+                >
+                  Add Task
+                </Button>
 
-              {/* Material-UI Dialog for Add Task Form */}
-              <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>Add New Task</DialogTitle>
-                <DialogContent>
-                  <FormControl
-                    fullWidth
-                    margin="normal"
-                    error={Boolean(formErrors.type)}
-                  >
-                    <InputLabel id="task-type-label">Task Type</InputLabel>
-                    <Select
-                      labelId="task-type-label"
-                      id="task-type"
-                      value={taskDetails.type}
-                      onChange={(event) => {
-                        setTaskDetails({
-                          ...taskDetails,
-                          type: event.target.value,
-                        });
-                        setFormErrors({ ...formErrors, type: '' });
-                      }}
-                      label="Task Type"
-                    >
-                      <MenuItem value={'todo'}>To Do</MenuItem>
-                      <MenuItem value={'inProgress'}>In Progress</MenuItem>
-                      <MenuItem value={'onHold'}>On Hold</MenuItem>
-                      <MenuItem value={'completed'}>Completed</MenuItem>
-                    </Select>
-                    <FormHelperText>{formErrors.type}</FormHelperText>
-                  </FormControl>
-                  <TextField
-                    fullWidth
-                    margin="normal"
-                    label="Task Title" /* Bind value & onChange */
-                    value={taskDetails.title}
-                    onChange={(event) => {
-                      setTaskDetails({
-                        ...taskDetails,
-                        title: event.target.value,
-                      });
-                      setFormErrors({ ...formErrors, title: '' });
-                    }}
-                    error={Boolean(formErrors.title)}
-                    helperText={formErrors.title}
-                  />
-                  {taskDetails.subtasks.map((subtask, index) => (
-                    <TextField
-                      key={index}
+                {/* Material-UI Dialog for Add Task Form */}
+                <Dialog open={open} onClose={handleClose}>
+                  <DialogTitle>Add New Task</DialogTitle>
+                  <DialogContent>
+                    <FormControl
                       fullWidth
                       margin="normal"
-                      label="Subtask Description"
-                      value={subtask.description}
-                      // Ensure the event type matches the expected input type
-                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                        handleSubtaskChange(index, event)
-                      }
-                    />
-                  ))}
-                  <IconButton onClick={handleAddSubtask} color="primary">
-                    <AddCircleOutlineIcon />
-                  </IconButton>
-                  {/* Dynamically add subtasks fields */}
-                  <FormControl
-                    component="fieldset"
-                    fullWidth
-                    margin="normal"
-                    error={Boolean(formErrors.severity)}
-                  >
-                    <RadioGroup
-                      value={taskDetails.severity}
+                      error={Boolean(formErrors.type)}
+                    >
+                      <InputLabel id="task-type-label">Task Type</InputLabel>
+                      <Select
+                        labelId="task-type-label"
+                        id="task-type"
+                        value={taskDetails.type}
+                        onChange={(event) => {
+                          setTaskDetails({
+                            ...taskDetails,
+                            type: event.target.value,
+                          });
+                          setFormErrors({ ...formErrors, type: '' });
+                        }}
+                        label="Task Type"
+                      >
+                        <MenuItem value={'todo'}>To Do</MenuItem>
+                        <MenuItem value={'inProgress'}>In Progress</MenuItem>
+                        <MenuItem value={'onHold'}>On Hold</MenuItem>
+                        <MenuItem value={'completed'}>Completed</MenuItem>
+                      </Select>
+                      <FormHelperText>{formErrors.type}</FormHelperText>
+                    </FormControl>
+                    <TextField
+                      fullWidth
+                      margin="normal"
+                      label="Task Title" /* Bind value & onChange */
+                      value={taskDetails.title}
                       onChange={(event) => {
                         setTaskDetails({
                           ...taskDetails,
-                          severity: event.target.value,
+                          title: event.target.value,
                         });
-                        setFormErrors({ ...formErrors, severity: '' });
+                        setFormErrors({ ...formErrors, title: '' });
                       }}
-                    >
-                      <FormControlLabel
-                        value="high"
-                        control={<Radio />}
-                        label="High"
-                      />
-                      <FormControlLabel
-                        value="medium"
-                        control={<Radio />}
-                        label="Medium"
-                      />
-                      <FormControlLabel
-                        value="low"
-                        control={<Radio />}
-                        label="Low"
-                      />
-                    </RadioGroup>
-                    <FormHelperText>{formErrors.severity}</FormHelperText>
-                  </FormControl>
-                  {/* Image upload input */}
-                  <Button
-                    variant="contained"
-                    component="label" // Only valid HTML label props can be passed along with Button's own props.
-                    color="primary"
-                    fullWidth
-                    className="button button-upload"
-                    startIcon={<AddCircleOutlineIcon className="plus-icon" />}
-                  >
-                    Upload Image
-                    <input
-                      type="file"
-                      hidden
-                      onChange={handleImageChange}
-                      className="input-file"
+                      error={Boolean(formErrors.title)}
+                      helperText={formErrors.title}
                     />
-                  </Button>
-                  {/* Submit button */}
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    fullWidth
-                    className="button button-primary"
-                    onClick={handleAddTaskSubmit} // You should replace this with your actual submission logic
-                  >
-                    Add Task
-                  </Button>
-                </DialogContent>
-              </Dialog>
+                    <FormControl fullWidth margin="normal">
+                      <InputLabel id="assigned-employee-label">
+                        Assigned Employee
+                      </InputLabel>
+                      <Select
+                        labelId="assigned-employee-label"
+                        id="assigned-employee"
+                        value={taskDetails.assignedEmployee}
+                        onChange={(event) => {
+                          setTaskDetails({
+                            ...taskDetails,
+                            assignedEmployee: event.target.value,
+                          });
+                        }}
+                        label="Assigned Employee"
+                      >
+                        <MenuItem value="">None</MenuItem>
+                        {employees
+                          .filter((employee) => employee.status === 'Active')
+                          .map((employee) => (
+                            <MenuItem
+                              key={employee.employee_id}
+                              value={employee.employee_id} // Use employee ID instead of name
+                            >
+                              {employee.name}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                    <TextField
+                      label="Due Date"
+                      type="date"
+                      fullWidth
+                      margin="normal"
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      value={taskDetails.dueDate || ''}
+                      onChange={(event) => {
+                        setTaskDetails({
+                          ...taskDetails,
+                          dueDate: event.target.value,
+                        });
+                      }}
+                    />
+                    {taskDetails.subtasks.map((subtask, index) => (
+                      <TextField
+                        key={index}
+                        fullWidth
+                        margin="normal"
+                        label="Subtask Description"
+                        value={subtask.description}
+                        // Ensure the event type matches the expected input type
+                        onChange={(
+                          event: React.ChangeEvent<HTMLInputElement>
+                        ) => handleSubtaskChange(index, event)}
+                      />
+                    ))}
+                    <IconButton onClick={handleAddSubtask} color="primary">
+                      <AddCircleOutlineIcon />
+                    </IconButton>
+                    {/* Dynamically add subtasks fields */}
+                    <FormControl
+                      component="fieldset"
+                      fullWidth
+                      margin="normal"
+                      error={Boolean(formErrors.severity)}
+                    >
+                      <RadioGroup
+                        value={taskDetails.severity}
+                        onChange={(event) => {
+                          setTaskDetails({
+                            ...taskDetails,
+                            severity: event.target.value,
+                          });
+                          setFormErrors({ ...formErrors, severity: '' });
+                        }}
+                      >
+                        <FormControlLabel
+                          value="high"
+                          control={<Radio />}
+                          label="High"
+                        />
+                        <FormControlLabel
+                          value="medium"
+                          control={<Radio />}
+                          label="Medium"
+                        />
+                        <FormControlLabel
+                          value="low"
+                          control={<Radio />}
+                          label="Low"
+                        />
+                      </RadioGroup>
+                      <FormHelperText>{formErrors.severity}</FormHelperText>
+                    </FormControl>
+                    {/* Image upload input */}
+                    <Button
+                      variant="contained"
+                      component="label" // Only valid HTML label props can be passed along with Button's own props.
+                      color="primary"
+                      fullWidth
+                      className="button button-upload"
+                      startIcon={<AddCircleOutlineIcon className="plus-icon" />}
+                    >
+                      Upload Image
+                      <input
+                        type="file"
+                        hidden
+                        onChange={handleImageChange}
+                        className="input-file"
+                      />
+                    </Button>
+                    {/* Submit button */}
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      fullWidth
+                      className="button button-primary"
+                      onClick={handleAddTaskSubmit} // You should replace this with your actual submission logic
+                    >
+                      Add Task
+                    </Button>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="mt-9 grid grid-cols-1 gap-7.5 sm:grid-cols-2 xl:grid-cols-4">
-          {Object.entries(kanbanData).map(([status, { tasks }]) => (
-            <div key={status} className="swim-lane flex flex-col gap-5.5">
-              <h4 className="text-xl font-semibold text-black dark:text-white">
-                {status} ({tasks.length})
-              </h4>
-              {tasks.map((task, index) => (
-                <TaskCard key={index} taskIndex={index} {...task} />
-              ))}
-            </div>
-          ))}
+          <div className="task-manager__board">
+            {Object.entries(kanbanData).map(([status, data]) => {
+              console.log(`Swimlane Props before passing - Status: ${status}, Data: `, data);
+              return (
+                <SwimLane
+                  key={status}
+                  status={status}
+                  tasks={data.tasks}
+                  onMoveTask={onMoveTask}
+                  onEditTask={handleEditTask}
+                  onDeleteTask={handleDeleteTask}
+                />
+              );
+            })}
+          </div>
         </div>
-      </div>
-    </DefaultLayout>
+      </DefaultLayout>
+    </DndProvider>
   );
 };
 

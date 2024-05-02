@@ -17,6 +17,9 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -25,6 +28,27 @@ SECRET_KEY = "django-insecure-kov7$dayv$2qspiw-ste+-6rp3vtfz2da5awjqnx+%i+!efn%q
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Use the following configuration to allow all domains during development:
 CORS_ALLOW_ALL_ORIGINS = True
@@ -44,6 +68,7 @@ MEDIA_URL = '/media/'
 # Application definition
 
 INSTALLED_APPS = [
+    "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -52,7 +77,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "farm_management",
     "rest_framework",
-    "corsheaders",
     "employee_management",
     "inventory_management",
     "vehicle_management",
@@ -60,9 +84,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
