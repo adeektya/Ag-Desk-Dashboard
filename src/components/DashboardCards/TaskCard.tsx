@@ -29,7 +29,6 @@ const TaskCardDashboard: React.FC = () => {
   }, []);
 
   const toggleTaskCompletion = (taskId, completed) => {
-    
     // Send an HTTP PATCH request to update the task's completion status
     axios
       .patch(`http://127.0.0.1:8000/api/tasks/${taskId}/`, { completed })
@@ -61,10 +60,18 @@ const TaskCardDashboard: React.FC = () => {
               />
               <ListItemText
                 primary={task.title}
-                secondary={task.subtasks.map((subtask) => subtask.description).join(', ')}
+                secondary={task.subtasks
+                  .map((subtask) => subtask.description)
+                  .join(', ')}
                 className={`task-text ${task.completed ? 'completed' : ''} ${
                   task.severity
                 }`}
+              />
+
+              <ListItemText
+                primary={task.assigned_employee_name}
+                secondary={task.due_date}
+                className='task-details'
               />
               <Chip
                 label={task.severity.toUpperCase()}

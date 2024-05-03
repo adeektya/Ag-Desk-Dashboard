@@ -23,9 +23,11 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),
     path('api/', include('farm_management.urls')),  
     path('employee/', include('employee_management.urls')),  
     path('inventory/', include('inventory_management.urls')),
-    path ('vehicle/', include('vehicle_management.urls')), 
+    path ('vehicle/', include('vehicle_management.urls')),
+    path('calendar/', include('calendar_events.urls')), 
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

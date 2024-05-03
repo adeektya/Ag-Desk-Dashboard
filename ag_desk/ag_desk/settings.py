@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+from datetime import timedelta
 import os
 from pathlib import Path
 
@@ -50,14 +51,12 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
+
 # Use the following configuration to allow all domains during development:
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 # Or specify your front-end domain
-
-# CSRF settings
-CSRF_COOKIE_HTTPONLY = False
 
 # Base directory for media files
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -80,6 +79,13 @@ INSTALLED_APPS = [
     "employee_management",
     "inventory_management",
     "vehicle_management",
+    "calendar_events",
+    # Third-party apps
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 MIDDLEWARE = [
@@ -91,6 +97,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     
 ]
 
@@ -111,6 +119,17 @@ TEMPLATES = [
         },
     },
 ]
+
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+SITE_ID = 1
+
+# Use console backend for development
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 WSGI_APPLICATION = "ag_desk.wsgi.application"
 

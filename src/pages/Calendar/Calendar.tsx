@@ -1,6 +1,6 @@
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import DefaultLayout from '../../layout/DefaultLayout';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -9,11 +9,12 @@ import {
   Box,
   TextField,
   FormGroup,
-  FormControlLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import EventData from '../../types/EventData';
+import axios from 'axios';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './calendar.css';
 
@@ -21,53 +22,103 @@ moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
 
 const Calendar = () => {
-  const [calevents, setCalEvents] = useState(EventData);
-  const [open, setOpen] = React.useState(false);
+  const [calEvents, setCalEvents] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
-  const [slot, setSlot] = useState(null);
-  const [color, setColor] = useState('default');
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [severity, setSeverity] = useState('low');
   const [update, setUpdate] = useState(null);
+  const [isTask, setIsTask] = useState(false);
 
-  const ColorVariation = [
-    {
-      id: 1,
-      eColor: '#1a97f5',
-      value: 'primary',
-    },
-    {
-      id: 2,
-      eColor: '#00ab55',
-      value: 'success',
-    },
-    {
-      id: 3,
-      eColor: '#fc4b6c',
-      value: 'danger',
-    },
-    {
-      id: 4,
-      eColor: '#1e4db7',
-      value: 'info',
-    },
-    {
-      id: 5,
-      eColor: '#fdd43f',
-      value: 'warning',
-    },
-  ];
+  useEffect(() => {
+    fetchCalendarEvents();
+    fetchTasksWithDueDate();
+  }, []);
+
+  const fetchCalendarEvents = () => {
+    axios
+      .get('http://127.0.0.1:8000/calendar/events/')
+      .then((response) => {
+        const formattedEvents = response.data.map((event) => ({
+          ...event,
+          start: new Date(event.start_time),
+          end: new Date(event.end_time),
+          color: getEventSeverityColor(event.severity),
+        }));
+        setCalEvents(formattedEvents);
+      })
+      .catch((error) => {
+        console.error('Error fetching calendar events:', error);
+      });
+  };
+
+  const fetchTasksWithDueDate = () => {
+    axios
+      .get('http://127.0.0.1:8000/api/tasks/')
+      .then((response) => {
+        const tasksWithDueDate = response.data.filter((task) => task.due_date);
+        const formattedTasks = tasksWithDueDate.map((task) => ({
+          ...task,
+          taskId: task.id,
+          start: new Date(task.due_date),
+          end: new Date(task.due_date),
+          color: getTaskSeverityColor(task.severity),
+        }));
+        setTasks(formattedTasks);
+      })
+      .catch((error) => {
+        console.error('Error fetching tasks:', error);
+      });
+  };
+
+  const getEventSeverityColor = (severity) => {
+    switch (severity) {
+      case 'high':
+        return 'danger';
+      case 'medium':
+        return 'warning';
+      case 'low':
+        return 'success';
+    }
+  };
+
+  const getTaskSeverityColor = (severity) => {
+    switch (severity) {
+      case 'high':
+        return 'danger';
+      case 'medium':
+        return 'warning';
+      case 'low':
+        return 'success';
+    }
+  };
 
   const addNewEventAlert = (slotInfo) => {
     setOpen(true);
-    setSlot(slotInfo);
+    setStartDate(slotInfo.start);
+    setEndDate(slotInfo.end);
   };
 
   const editEvent = (event) => {
+    console.log('Event:', event);
     setOpen(true);
-    const newEditEvent = calevents.find((elem) => elem.title === event.title);
-    setColor(event.color);
-    setTitle(newEditEvent.title);
-    setColor(newEditEvent.color);
-    setUpdate(event);
+    if (event.taskId) {
+      setTitle(event.title);
+      setStartDate(event.start);
+      setEndDate(event.end);
+      setSeverity(event.severity);
+      setIsTask(true);
+      setUpdate({ ...event, id: event.taskId });
+    } else {
+      setTitle(event.title);
+      setStartDate(event.start);
+      setEndDate(event.end);
+      setSeverity(event.severity);
+      setIsTask(false);
+      setUpdate(event);
+    }
   };
 
   const updateEvent = (e) => {
@@ -77,61 +128,101 @@ const Calendar = () => {
       return;
     }
 
-    setCalEvents(
-      calevents.map((elem) => {
-        if (elem.title === update.title) {
-          return { ...elem, title, color };
-        }
-        return elem;
+    const eventData = {
+      title,
+      start_time: startDate,
+      end_time: endDate,
+      severity,
+    };
+
+    if (isTask) {
+      axios
+        .put(`http://127.0.0.1:8000/api/tasks/${update.id}/`, eventData)
+        .then((response) => {
+          fetchTasksWithDueDate();
+          setOpen(false);
+          resetForm();
+        })
+        .catch((error) => {
+          console.error('Error updating task:', error);
+        });
+    } else {
+      axios
+        .put(`http://127.0.0.1:8000/calendar/events/${update.id}/`, eventData)
+        .then((response) => {
+          fetchCalendarEvents();
+          setOpen(false);
+          resetForm();
+        })
+        .catch((error) => {
+          console.error('Error updating calendar event:', error);
+        });
+    }
+  };
+
+  const createEvent = (e) => {
+    e.preventDefault();
+
+    const eventData = {
+      title,
+      start_time: startDate,
+      end_time: endDate,
+      severity,
+    };
+
+    axios
+      .post('http://127.0.0.1:8000/calendar/events/', eventData)
+      .then((response) => {
+        fetchCalendarEvents();
+        setOpen(false);
+        resetForm();
       })
-    );
-    setOpen(false);
+      .catch((error) => {
+        console.error('Error creating calendar event:', error);
+      });
+  };
+
+  const deleteEvent = (event) => {
+    if (isTask) {
+      axios
+        .delete(`http://127.0.0.1:8000/api/tasks/${event.id}/`)
+        .then((response) => {
+          fetchTasksWithDueDate();
+          setOpen(false);
+          resetForm();
+        })
+        .catch((error) => {
+          console.error('Error deleting task:', error);
+        });
+    } else {
+      axios
+        .delete(`http://127.0.0.1:8000/calendar/events/${event.id}/`)
+        .then((response) => {
+          fetchCalendarEvents();
+          setOpen(false);
+          resetForm();
+        })
+        .catch((error) => {
+          console.error('Error deleting calendar event:', error);
+        });
+    }
+  };
+
+  const resetForm = () => {
     setTitle('');
-    setColor('');
+    setStartDate(new Date());
+    setEndDate(new Date());
+    setSeverity('low');
     setUpdate(null);
   };
 
-  const inputChangeHandler = (e) => setTitle(e.target.value);
-
-  const selectinputChangeHandler = (id) => setColor(id);
-
-  const submitHandler = (e) => {
-    e.preventDefault();
-    if (!slot) {
-      console.error('No time slot selected for the new event.');
-      return;
-    }
-
-    const newEvents = calevents;
-    newEvents.push({
-      title,
-      start: slot.start,
-      end: slot.end,
-      color,
-    });
-    setOpen(false);
-    e.target.reset();
-
-    setCalEvents(newEvents);
-    setTitle('');
-  };
-  const deleteHandler = (event) => {
-    const updatecalEvents = calevents.filter(
-      (ind) => ind.title !== event.title
-    );
-    setCalEvents(updatecalEvents);
-  };
   const handleClose = () => {
     setOpen(false);
-    setTitle('');
-    setUpdate(null);
+    resetForm();
   };
 
   const eventColors = (event) => {
-    if (event.color) {
-      return { className: `event-${event.color}` };
-    }
-    return { className: `event-default` };
+    return { className: `event-${event.color}` };
   };
 
   return (
@@ -139,11 +230,11 @@ const Calendar = () => {
       <Breadcrumb pageName="Calendar" />
 
       {/* <!-- ====== Calendar Section Start ====== --> */}
-      <Card className="w-full max-w-full rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+      <Card className="calendar-card dark:border-strokedark dark:bg-boxdark">
         <CardContent>
           <BigCalendar
             selectable
-            events={calevents}
+            events={[...calEvents, ...tasks]}
             defaultView="month"
             scrollToTime={new Date(1970, 1, 1, 6)}
             defaultDate={new Date()}
@@ -151,10 +242,10 @@ const Calendar = () => {
             style={{ height: 'calc(100vh - 350px' }}
             onSelectEvent={(event) => editEvent(event)}
             onSelectSlot={(slotInfo) => addNewEventAlert(slotInfo)}
-            eventPropGetter={(event) => eventColors(event)}
+            eventPropGetter={eventColors}
             className="calendar-container"
           />
-          <Modal open={open} onClose={handleClose}>
+          <Modal open={open} onClose={handleClose} className="calendar-modal">
             <Box
               sx={{
                 position: 'absolute',
@@ -167,11 +258,13 @@ const Calendar = () => {
                 p: 4,
               }}
             >
-              <h2>{update ? 'Update Event' : 'Add Event'}</h2>
+              <h2 className="modal-title">
+                {update ? 'Update Event' : 'Add Event'}
+              </h2>
               <Box
-              className="modal-box"
+                className="modal-form"
                 component="form"
-                onSubmit={update ? updateEvent : submitHandler}
+                onSubmit={update ? updateEvent : createEvent}
                 noValidate
                 sx={{ mt: 1 }}
               >
@@ -185,31 +278,52 @@ const Calendar = () => {
                   autoComplete="title"
                   autoFocus
                   value={title}
-                  onChange={inputChangeHandler}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="form-input"
                 />
-                <FormGroup>
-                  {ColorVariation.map((colorbg) => (
-                    <FormControlLabel
-                      key={colorbg.eColor}
-                      className='colorbg'
-                      control={
-                        <Button
-                        className={`mui-btn btn-${colorbg.value}`} // Apply the corresponding class
-                          key={colorbg.eColor}
-                          variant={colorbg.value === color ? 'contained' : 'outlined'}
-                          onClick={() =>
-                            selectinputChangeHandler(colorbg.value)
-                          }
-                        >
-                          {colorbg.value}
-                        </Button>
-                      }
-                      label=""
-                    />
-                  ))}
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="start-date"
+                  label="Start Date"
+                  type="datetime-local"
+                  value={moment(startDate).format('YYYY-MM-DDTHH:mm')}
+                  onChange={(e) => setStartDate(new Date(e.target.value))}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  className="form-input"
+                />
+                <TextField
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="end-date"
+                  label="End Date"
+                  type="datetime-local"
+                  value={moment(endDate).format('YYYY-MM-DDTHH:mm')}
+                  onChange={(e) => setEndDate(new Date(e.target.value))}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  className="form-input"
+                />
+                <FormGroup className="form-group">
+                  <Select
+                    value={severity}
+                    onChange={(e) => setSeverity(e.target.value)}
+                    displayEmpty
+                    inputProps={{ 'aria-label': 'severity' }}
+                    className="form-select"
+                  >
+                    <MenuItem value="low">Low</MenuItem>
+                    <MenuItem value="medium">Medium</MenuItem>
+                    <MenuItem value="high">High</MenuItem>
+                  </Select>
                 </FormGroup>
                 <Button
-                className="mui-btn"
+                  className="form-button"
                   type="submit"
                   fullWidth
                   variant="contained"
@@ -219,10 +333,10 @@ const Calendar = () => {
                 </Button>
                 {update && (
                   <Button
-                  className="mui-btn"
+                    className="form-button delete-button"
                     variant="outlined"
                     color="error"
-                    onClick={() => deleteHandler(update)}
+                    onClick={() => deleteEvent(update)}
                   >
                     Delete
                   </Button>
