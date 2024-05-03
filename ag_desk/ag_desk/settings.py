@@ -80,6 +80,8 @@ INSTALLED_APPS = [
     "inventory_management",
     "vehicle_management",
     "calendar_events",
+    'user_management',
+    'rest_framework.authtoken',
     # Third-party apps
     'django.contrib.sites',
     'allauth',
@@ -120,6 +122,12 @@ TEMPLATES = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
+
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -132,6 +140,11 @@ SITE_ID = 1
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 WSGI_APPLICATION = "ag_desk.wsgi.application"
+
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = False
 
 
 # Database

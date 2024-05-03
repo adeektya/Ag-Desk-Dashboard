@@ -1,88 +1,169 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { Link } from 'react-router-dom';
+import {
+  Box,
+  Button,
+  Container,
+  Grid,
+  TextField,
+  Typography,
+  InputAdornment,
+  IconButton,
+} from '@mui/material';
+import {
+  Google as GoogleIcon,
+  Visibility,
+  VisibilityOff,
+} from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { loginUser } from './api';
+
+const password = ''; // Declare the password variable
+const email = ''; // Declare the email variable
 
 const SignIn: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = React.useState(false);
   const navigate = useNavigate();
-  const [loginData, setLoginData] = useState({
-    email: '',
-    password: '',
-  });
-  const [error, setError] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setLoginData({ ...loginData, [e.target.name]: e.target.value });
+  const handleClickShowPassword = () => setShowPassword((show) => !show);
+
+  const handleMouseDownPassword = (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.preventDefault();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleChange =
+    (prop: 'email' | 'password') =>
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (prop === 'email') setEmail(event.target.value);
+      else setPassword(event.target.value);
+    };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     try {
-      const response = await axios.post('http://127.0.0.1:8000/login/', {
-        username: loginData.email, // Assuming your backend uses 'username' to log in
-        password: loginData.password,
-      });
-      console.log(response.data);
-      navigate('/'); // Redirect to homepage or dashboard after successful login
+      const userData = { email, password };
+      console.log('User data:', userData);
+      const response = await loginUser(userData);
+      console.log('Login successful:', response);
+      localStorage.setItem('token', response.token);
+      navigate('/'); // Update the redirect route as needed
     } catch (error) {
-      setError('Login failed. Please check your credentials.');
+      console.error('Login failed:', error);
+      alert('Login failed. Please check your credentials.');
     }
   };
+
   return (
-    <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
-      <div className="flex flex-wrap items-center">
-        <div className="w-full p-4 sm:p-12.5 xl:p-17.5">
-          <h2 className="mb-9 text-2xl font-bold text-black dark:text-white">
-            Sign In to Ag-Desk
-          </h2>
-          {error && <p className="text-red-500">{error}</p>}
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="mb-2.5 block font-medium text-black dark:text-white">
-                Email
-              </label>
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter your email"
-                className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                value={loginData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="mb-2.5 block font-medium text-black dark:text-white">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Enter your password"
-                className="w-full rounded-lg border border-stroke bg-transparent py-4 pl-6 pr-10 text-black outline-none focus:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                value={loginData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="mb-5">
-              <input
-                type="submit"
-                value="Sign In"
-                className="w-full cursor-pointer rounded-lg border border-primary bg-primary p-4 text-white transition hover:bg-opacity-90"
-              />
-            </div>
-          </form>
-          <p className="mt-6 text-center">
-            Don’t have any account?{' '}
-            <Link to="/signup" className="text-primary">
-              Sign Up
-            </Link>
-          </p>
-        </div>
-      </div>
-    </div>
+    <Container maxWidth="md">
+      <Box
+        sx={{
+          borderRadius: '8px',
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.paper',
+          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
+          p: 4,
+        }}
+      >
+        <Grid container spacing={4}>
+          <Grid item xs={12} md={6}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                textAlign: 'center',
+                p: 4,
+              }}
+            >
+              <Typography variant="h4" component="h2" gutterBottom>
+                Welcome Back
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit
+                suspendisse.
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Box sx={{ p: 4 }}>
+              <Typography variant="h5" component="h3" gutterBottom>
+                Sign In
+              </Typography>
+              <form onSubmit={handleSubmit}>
+                <TextField
+                  label="Email"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  value={email}
+                  onChange={handleChange('email')}
+                />
+                <TextField
+                  label="Password"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={handleChange('password')}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  sx={{ mt: 2 }}
+                >
+                  Sign In
+                </Button>
+              </form>
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  Or sign in with
+                </Typography>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  startIcon={<GoogleIcon />}
+                  sx={{ mt: 1 }}
+                >
+                  Sign in with Google
+                </Button>
+              </Box>
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
+                <Typography variant="body2">
+                  Don't have an account?{' '}
+                  <Link to="/signup" style={{ color: 'primary.main' }}>
+                    Sign up
+                  </Link>
+                </Typography>
+              </Box>
+            </Box>
+          </Grid>
+        </Grid>
+      </Box>
+    </Container>
   );
 };
 

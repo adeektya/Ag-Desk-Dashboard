@@ -30,6 +30,27 @@ const lowInventoryThreshold = 10;
 const DataStatsThree: React.FC = () => {
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const response = await axios.get('http://127.0.0.1:8000/user/user/', {
+            headers: {
+              Authorization: `Token ${token}`,
+            },
+          });
+          setUser(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleAddTodo = () => {
     if (newTodo.trim() !== '') {
@@ -76,7 +97,7 @@ const DataStatsThree: React.FC = () => {
       <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-title-sm2 font-bold text-black dark:text-white">
-            Welcome, User
+            Welcome, {user ? user.username : 'User'}
           </h2>
         </div>
       </div>
@@ -93,8 +114,8 @@ const DataStatsThree: React.FC = () => {
             </Typography>
             {weather ? (
               <>
-              <div className="weather-icon-container">
-                <WiDaySunny size={96} color="#000" />
+                <div className="weather-icon-container">
+                  <WiDaySunny size={96} color="#000" />
                 </div>
                 <Typography
                   variant="h5"
@@ -119,7 +140,7 @@ const DataStatsThree: React.FC = () => {
                 </Typography>
               </>
             ) : (
-                <Typography variant="body2">Loading weather...</Typography>
+              <Typography variant="body2">Loading weather...</Typography>
             )}
           </CardContent>
         </Card>

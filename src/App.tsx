@@ -12,6 +12,7 @@ import EmployeePage from './pages/EmployeePage/EmployeePage';
 import SignIn from './pages/Authentication/SignIn';
 import SignUp from './pages/Authentication/SignUp';
 import VehiclePage from './pages/VehicleManagement/VehiclePage';
+import EmployeeRegistration from './pages/Authentication/EmployeeRegistration';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -86,6 +87,7 @@ function App() {
         />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/employee-registration" element={<EmployeeRegistration />} />
       </Routes>
     </>
   );
