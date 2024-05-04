@@ -30,6 +30,6 @@ urlpatterns = [
     path('inventory/', include('inventory_management.urls')),
     path ('vehicle/', include('vehicle_management.urls')),
     path('calendar/', include('calendar_events.urls')), 
-    path('user/', include('user_management.urls')),
+    path('user/', include('core.urls')),
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

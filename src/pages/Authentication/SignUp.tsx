@@ -9,6 +9,9 @@ import {
   Typography,
   InputAdornment,
   IconButton,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
 } from '@mui/material';
 import {
   Google as GoogleIcon,
@@ -22,46 +25,70 @@ const SignUp: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = React.useState(false);
+  const [invitationCode, setInvitationCode] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [userRole, setUserRole] = useState('employee');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
-
-  const handleMouseDownPassword = (
-    event: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  const handleMouseDownPassword = (event) => {
     event.preventDefault();
   };
 
-  const handleChange =
-    (prop: 'name' | 'email' | 'password') =>
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (prop === 'name') setName(event.target.value);
-      else if (prop === 'email') setEmail(event.target.value);
-      else if (prop === 'password') setPassword(event.target.value);
-    };
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    // Simple validation for username to include only allowed characters
-    const usernameRegex = /^[a-zA-Z0-9@.+_-]+$/;
-    if (!usernameRegex.test(name)) {
-      alert(
-        'Username may contain only letters, numbers, and @/./+/-/_ characters.'
-      );
-      return;
+  const handleChange = (prop) => (event) => {
+    switch (prop) {
+      case 'name':
+        setName(event.target.value);
+        break;
+      case 'email':
+        setEmail(event.target.value);
+        break;
+      case 'password':
+        setPassword(event.target.value);
+        break;
+      case 'invitationCode':
+        setInvitationCode(event.target.value);
+        break;
+      case 'contactNumber':
+        setContactNumber(event.target.value);
+        break;
+      case 'startDate':
+        setStartDate(event.target.value);
+        break;
+      default:
+        break;
     }
+  };
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     const userData = {
       username: name,
       email: email,
       password: password,
+      is_owner: userRole === 'owner',
+      is_employee: userRole === 'employee',
+      ...(userRole === 'owner' ? { invitation_code: invitationCode } : {}),
+      ...(userRole === 'employee'
+        ? {
+            employee_profile: {
+              role: 'employee',
+              contactNumber: contactNumber,
+              section: 'A',
+              start_date: startDate,
+              salary: '0',
+              status: 'Active',
+            },
+          }
+        : {}),
     };
 
     try {
       const response = await registerUser(userData);
       console.log('Registration successful:', response);
-      navigate('/signin'); // Redirect to sign-in page after successful registration
+      navigate('/signin');
     } catch (error) {
       console.error('Registration failed:', error);
       alert('Registration failed. Please try again.');
@@ -147,6 +174,56 @@ const SignUp: React.FC = () => {
                     ),
                   }}
                 />
+                <RadioGroup
+                  row
+                  value={userRole}
+                  onChange={(event) => setUserRole(event.target.value)}
+                >
+                  <FormControlLabel
+                    value="owner"
+                    control={<Radio />}
+                    label="Owner"
+                  />
+                  <FormControlLabel
+                    value="employee"
+                    control={<Radio />}
+                    label="Employee"
+                  />
+                </RadioGroup>
+                {userRole === 'owner' && (
+                  <TextField
+                    label="Invitation Code"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    value={invitationCode}
+                    onChange={handleChange('invitationCode')}
+                  />
+                )}
+                {userRole === 'employee' && (
+                  <>
+                    <TextField
+                      label="Contact Number"
+                      variant="outlined"
+                      fullWidth
+                      margin="normal"
+                      value={contactNumber}
+                      onChange={handleChange('contactNumber')}
+                    />
+                    <TextField
+                      label="Start Date"
+                      type="date"
+                      variant="outlined"
+                      fullWidth
+                      margin="normal"
+                      InputLabelProps={{
+                        shrink: true,
+                      }}
+                      value={startDate}
+                      onChange={handleChange('startDate')}
+                    />
+                  </>
+                )}
                 <Button
                   type="submit"
                   variant="contained"

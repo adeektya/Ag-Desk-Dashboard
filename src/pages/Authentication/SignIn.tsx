@@ -42,20 +42,24 @@ const SignIn: React.FC = () => {
       else setPassword(event.target.value);
     };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    try {
-      const userData = { email, password };
-      console.log('User data:', userData);
-      const response = await loginUser(userData);
-      console.log('Login successful:', response);
-      localStorage.setItem('token', response.token);
-      navigate('/'); // Update the redirect route as needed
-    } catch (error) {
-      console.error('Login failed:', error);
-      alert('Login failed. Please check your credentials.');
-    }
-  };
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      if (!email || !password) {
+        alert('Please enter both email and password.'); // Replace with Snackbar for better UX
+        return;
+      }
+    
+      try {
+        const userData = { email, password };
+        const response = await loginUser(userData);
+        console.log('Login successful:', response);
+        localStorage.setItem('token', response.token);
+        navigate('/'); // Adjust the redirect route as necessary
+      } catch (error) {
+        console.error('Login failed:', error);
+        alert(error.response?.data?.error || 'Login failed. Please check your credentials.'); // Replace with Snackbar for better UX
+      }
+    };
 
   return (
     <Container maxWidth="md">

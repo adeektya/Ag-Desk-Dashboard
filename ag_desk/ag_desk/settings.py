@@ -67,6 +67,7 @@ MEDIA_URL = '/media/'
 # Application definition
 
 INSTALLED_APPS = [
+    "core",
     "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -80,7 +81,6 @@ INSTALLED_APPS = [
     "inventory_management",
     "vehicle_management",
     "calendar_events",
-    'user_management',
     'rest_framework.authtoken',
     # Third-party apps
     'django.contrib.sites',
@@ -202,3 +202,22 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTH_USER_MODEL = 'core.CustomUser'  # This tells Django to use CustomUser as the user model for the entire project
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'core.serializers': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        },
+    },
+}
