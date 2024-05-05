@@ -1,6 +1,6 @@
 from django.contrib import admin
-from vehicle_management.models import Vehicle
+from vehicle_management.models import VehicleItem
 
 # Register your models here.
 
-admin.site.register(Vehicle)
+admin.site.register(VehicleItem)
