@@ -18,8 +18,12 @@ class UserSerializer(serializers.ModelSerializer):
             "is_owner",
             "is_employee",
             "invitation_code",
+            "is_approved",
         ]
-        extra_kwargs = {"password": {"write_only": True}}
+        extra_kwargs = {
+            "password": {"write_only": True},
+            "is_approved": {"read_only": True},
+        }
 
     def validate_invitation_code(self, value):
         if self.initial_data.get("is_owner", False):
@@ -33,17 +37,18 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         invitation_code = validated_data.pop("invitation_code", None)
+        is_owner = validated_data.get("is_owner", False)
 
         user = User.objects.create_user(
             username=validated_data["username"],
             email=validated_data["email"],
             password=validated_data["password"],
-            is_owner=validated_data.get("is_owner", False),
+            is_owner=is_owner,
             is_employee=validated_data.get("is_employee", False),
-            is_approved=validated_data.get("is_owner", False)  # Auto-approve owners
+            is_approved=is_owner  # Auto-approve owners, others must be manually approved
         )
 
-        if user.is_owner and invitation_code:
+        if is_owner and invitation_code:
             code_obj = InvitationCode.objects.get(code=invitation_code)
             code_obj.is_used = True
             code_obj.save()

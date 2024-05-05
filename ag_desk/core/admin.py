@@ -4,12 +4,12 @@ from .models import CustomUser, InvitationCode
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
-    list_display = ['email', 'username', 'is_owner', 'is_employee', 'is_active', 'is_staff']
+    list_display = ['email', 'username', 'is_owner', 'is_employee', 'is_active', 'is_staff', 'is_approved']
     fieldsets = UserAdmin.fieldsets + (
-        (None, {'fields': ('is_owner', 'is_employee')}),
+        (None, {'fields': ('is_owner', 'is_employee', 'is_approved')}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
-        (None, {'fields': ('is_owner', 'is_employee')}),
+        (None, {'fields': ('is_owner', 'is_employee' , 'is_approved')}),
     )
 
 admin.site.register(CustomUser, CustomUserAdmin)

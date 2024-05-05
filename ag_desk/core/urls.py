@@ -1,8 +1,9 @@
 from django.urls import path
-from .views import UserRegistrationView, UserLoginView, UserApprovalView
+from .views import UserRegistrationView, UserLoginView, EmployeeApprovalView, UnapprovedUsersView
 
 urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='register'),
     path('login/', UserLoginView.as_view(), name='login'),
-    path('approve/<int:pk>/', UserApprovalView.as_view(), name='approve-user'),
+    path('approve/<int:pk>/', EmployeeApprovalView.as_view(), name='approve-employee'),
+    path('unapproved/', UnapprovedUsersView.as_view(), name='unapproved-users'),
 ]

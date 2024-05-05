@@ -179,8 +179,8 @@ const VehicleManagement: React.FC = () => {
           Add Vehicle
         </Button>
       </div>
-      <div className="data-grid-container">
-        <DataGrid rows={vehicles} columns={columns} pagination autoPageSize autoHeight />
+      <div className="data-grid-container" style={{ height: 400, width: '100%' }}>
+        <DataGrid rows={vehicles} columns={columns} pagination autoPageSize />
       </div>
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle>{editMode ? 'Edit Vehicle' : 'Add Vehicle'}</DialogTitle>

@@ -12,6 +12,7 @@ import {
   FormControlLabel,
   Radio,
   RadioGroup,
+  Paper,
 } from '@mui/material';
 import {
   Google as GoogleIcon,
@@ -20,6 +21,8 @@ import {
 } from '@mui/icons-material';
 import { registerUser } from './api';
 import { useNavigate } from 'react-router-dom';
+import backgroundImg from "../../images/logo/clearoff.jpeg"
+import "./signup.css"
 
 const SignUp: React.FC = () => {
   const [name, setName] = useState('');
@@ -97,44 +100,19 @@ const SignUp: React.FC = () => {
 
   return (
     <Container maxWidth="md">
-      <Box
-        sx={{
-          borderRadius: '8px',
-          border: '1px solid',
-          borderColor: 'divider',
-          bgcolor: 'background.paper',
-          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
-          p: 4,
-        }}
-      >
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={6}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                textAlign: 'center',
-                p: 4,
-              }}
-            >
-              <Typography variant="h4" component="h2" gutterBottom>
-                Welcome to Ag-Desk
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit
-                suspendisse.
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Box sx={{ p: 4 }}>
-              <Typography variant="h5" component="h3" gutterBottom>
-                Sign Up
-              </Typography>
-              <form onSubmit={handleSubmit}>
+      <Box sx={{ my: 4, p: 2, backgroundImage: `url(${backgroundImg})`, backgroundSize: 'cover', borderRadius: 2 }}>
+        <Paper elevation={3} sx={{ p: 4, bgcolor: 'rgba(255, 255, 255, 0.8)' }}>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <Typography variant="h4" gutterBottom>Welcome to Ag-Desk</Typography>
+                <Typography>Join us and optimize your farm management.</Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ p: 4 }}>
+                <Typography variant="h5" gutterBottom>Sign Up</Typography>
+                <form onSubmit={handleSubmit}>
                 <TextField
                   label="Name"
                   variant="outlined"
@@ -258,6 +236,7 @@ const SignUp: React.FC = () => {
             </Box>
           </Grid>
         </Grid>
+      </Paper>
       </Box>
     </Container>
   );

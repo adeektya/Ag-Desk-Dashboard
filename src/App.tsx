@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import Dashboard from './pages/Dashboard/Dashboard';
 import Calendar from './pages/Calendar/Calendar';
@@ -13,10 +13,12 @@ import SignIn from './pages/Authentication/SignIn';
 import SignUp from './pages/Authentication/SignUp';
 import VehiclePage from './pages/VehicleManagement/VehiclePage';
 import EmployeeRegistration from './pages/Authentication/EmployeeRegistration';
+import { useAuth } from './contexts/AuthContext';
 
 function App() {
   const [loading, setLoading] = useState<boolean>(true);
   const { pathname } = useLocation();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -26,70 +28,26 @@ function App() {
     setTimeout(() => setLoading(false), 1000);
   }, []);
 
-  return loading ? (
-    <Loader />
-  ) : (
-    <>
-      <Routes>
-        <Route
-          index
-          element={
-            <>
-              <PageTitle title="Ag-Desk| Farm management Dashboard" />
-              <Dashboard />
-            </>
-          }
-        />
-        <Route
-          path="/calendar"
-          element={
-            <>
-              <PageTitle title="Calendar" />
-              <Calendar />
-            </>
-          }
-        />
-        <Route
-          path="/tasks/task-kanban"
-          element={
-            <>
-              <PageTitle title="Task Kanban" />
-              <TaskKanban />
-            </>
-          }
-        />
-        <Route
-          path="/InventoryPage"
-          element={
-            <>
-              <PageTitle title="Inventory Management | Ag-Desk" />
-              <InventoryPage />
-            </>
-          }
-        />
-        <Route
-          path="/EmployeePage"
-          element={
-            <>
-              <PageTitle title="Employee Management | Ag-Desk" />
-              <EmployeePage />
-            </>
-          }
-        />
-        <Route
-          path="/VehiclePage"
-          element={
-            <>
-              <PageTitle title="Vehicle Management | Ag-Desk" />
-              <VehiclePage />
-            </>
-          }
-        />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/employee-registration" element={<EmployeeRegistration />} />
-      </Routes>
-    </>
+  if (loading) {
+    return <Loader />;
+  }
+
+  return (
+    <Routes>
+      {/* Redirect to sign-in if not authenticated */}
+      <Route index element={isAuthenticated ? <Dashboard /> : <Navigate replace to="/signin" />} />
+      <Route path="/calendar" element={isAuthenticated ? <Calendar /> : <Navigate replace to="/signin" />} />
+      <Route path="/tasks/task-kanban" element={isAuthenticated ? <TaskKanban /> : <Navigate replace to="/signin" />} />
+      <Route path="/InventoryPage" element={isAuthenticated ? <InventoryPage /> : <Navigate replace to="/signin" />} />
+      <Route path="/EmployeePage" element={isAuthenticated ? <EmployeePage /> : <Navigate replace to="/signin" />} />
+      <Route path="/VehiclePage" element={isAuthenticated ? <VehiclePage /> : <Navigate replace to="/signin" />} />
+      <Route path="/employee-registration" element={isAuthenticated ? <EmployeeRegistration /> : <Navigate replace to="/signin" />} />
+      <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate replace to="/signin" />} />
+
+      {/* Unprotected routes */}
+      <Route path="/signin" element={<SignIn />} />
+      <Route path="/signup" element={<SignUp />} />
+    </Routes>
   );
 }
 

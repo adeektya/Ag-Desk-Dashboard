@@ -18,6 +18,7 @@ import {
   MenuItem,
   Snackbar,
   Alert,
+  Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -32,7 +33,10 @@ import {
   deleteEmployee,
   API_URL,
 } from './api';
-import "./employeepage.css"
+import './employeepage.css';
+import { List, ListItem, ListItemText } from '@mui/material';
+import axios from 'axios';
+import ApprovalTable from './ApprovedList';
 
 const EmployeePage = () => {
   const theme = useTheme();
@@ -43,6 +47,7 @@ const EmployeePage = () => {
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const [error, setError] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [unapprovedUsers, setUnapprovedUsers] = useState([]);
   const formik = useFormik({
     initialValues: {
       image: '',
@@ -139,12 +144,67 @@ const EmployeePage = () => {
     }
   };
 
+  useEffect(() => {
+    const fetchUnapprovedUsers = async () => {
+      const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+      if (!token) {
+        console.log('No token found, user not logged in or session expired.');
+        return; // Early return if no token is found
+      }
+
+      try {
+        const response = await axios.get(
+          'http://127.0.0.1:8000/user/unapproved/',
+          {
+            headers: { Authorization: `Token ${token}` },
+          }
+        );
+        setUnapprovedUsers(response.data);
+      } catch (error) {
+        console.error('Failed to fetch unapproved users:', error);
+      }
+    };
+
+    fetchUnapprovedUsers();
+  }, []);
+
+  const handleApproval = async (userId, approve) => {
+    const token = localStorage.getItem('token'); // Get the token from localStorage
+
+    if (!token) {
+      console.error('Authentication token not found.');
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `http://127.0.0.1:8000/user/approve/${userId}/`,
+        { approve },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Token ${token}`, // Ensure this is correctly formatted
+          },
+        }
+      );
+      setUnapprovedUsers((current) =>
+        current.filter((user) => user.id !== userId)
+      );
+      console.log('User approval status updated.', response.data);
+    } catch (error) {
+      console.error('Failed to update user approval status:', error);
+    }
+  };
+
   const columns = [
     {
       field: 'image',
       headerName: 'Photo',
       renderCell: (params) => (
-        <Avatar src={params.value ? `${API_URL}${params.value}` : ''} alt={params.row.name} />
+        <Avatar
+          src={params.value ? `${API_URL}${params.value}` : ''}
+          alt={params.row.name}
+        />
       ),
     },
     {
@@ -224,7 +284,7 @@ const EmployeePage = () => {
         startIcon={<AddIcon />}
         onClick={() => setOpen(true)}
         sx={{ mb: 2 }}
-        className="mui-button custom-button" 
+        className="mui-button custom-button"
       >
         Add Employee
       </Button>
@@ -237,12 +297,19 @@ const EmployeePage = () => {
           columns={columns}
           autoPageSize
           pagination
-          filterMode='server'
-          sortingMode='server'
+          filterMode="server"
+          sortingMode="server"
           checkboxSelection
           getRowId={(row) => row.employee_id}
         />
       </div>
+      <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
+        Pending Approvals
+      </Typography>
+      <ApprovalTable
+        unapprovedUsers={unapprovedUsers}
+        handleApproval={handleApproval}
+      />
       <Dialog
         fullScreen={fullScreen}
         open={open}

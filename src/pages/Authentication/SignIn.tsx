@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Box,
@@ -17,11 +17,13 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from './api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const password = ''; // Declare the password variable
 const email = ''; // Declare the email variable
 
 const SignIn: React.FC = () => {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = React.useState(false);
@@ -42,24 +44,34 @@ const SignIn: React.FC = () => {
       else setPassword(event.target.value);
     };
 
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (!email || !password) {
-        alert('Please enter both email and password.'); // Replace with Snackbar for better UX
-        return;
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!email || !password) {
+      alert('Please enter both email and password.'); // Replace with Snackbar for better UX
+      return;
+    }
+
+    try {
+      const userData = { email, password };
+      const response = await loginUser(userData);
+      console.log('Login successful:', response);
+      if (response.token) {
+        login(response.token);
+        navigate('/');
       }
-    
-      try {
-        const userData = { email, password };
-        const response = await loginUser(userData);
-        console.log('Login successful:', response);
-        localStorage.setItem('token', response.token);
-        navigate('/'); // Adjust the redirect route as necessary
-      } catch (error) {
-        console.error('Login failed:', error);
-        alert(error.response?.data?.error || 'Login failed. Please check your credentials.'); // Replace with Snackbar for better UX
-      }
-    };
+    } catch (error) {
+      console.error('Login failed:', error);
+      alert('Login failed. Please check your credentials.'); // Consider using a snackbar for error handling
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      login(token);
+      navigate('/'); // redirect to the dashboard or home page
+    }
+  }, [login, navigate]);
 
   return (
     <Container maxWidth="md">
