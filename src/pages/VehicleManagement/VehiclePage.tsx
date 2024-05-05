@@ -1,6 +1,6 @@
-// VehicleManagement.tsx
 import React, { useState, useEffect } from 'react';
-import { DataGrid, GridColDef, GridCellParams  } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridCellParams } from '@mui/x-data-grid';
+
 import {
   Button,
   Dialog,
@@ -11,6 +11,7 @@ import {
   MenuItem,
   IconButton,
   Avatar,
+  Paper,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -22,11 +23,15 @@ import * as Yup from 'yup';
 import "./vehiclepage.css"
 import DefaultLayout from '../../layout/DefaultLayout';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
+import axios from 'axios';
 
 interface Vehicle {
   id: number;
   vehicle_name: string;
   vehicle_type: string;
+  vehicle_mark: string;
+  vehicle_model: string;
+  vehicle_year: number;
   service_status: string;
   next_service_date: string;
   registration_renewal_date: string;
@@ -39,17 +44,27 @@ const VehicleManagement: React.FC = () => {
   const [editMode, setEditMode] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
-  useEffect(() => {
-    // Fetch vehicles from the backend API
-    // Replace this with your actual API call
-    const fetchVehicles = async () => {
-      const response = await fetch('/api/vehicles');
-      const data = await response.json();
-      setVehicles(data);
-    };
 
+  useEffect(() => {
     fetchVehicles();
   }, []);
+
+    const fetchVehicles = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/vehicle/');
+        const data = response.data;
+        const sortedData = data.sort((a: Vehicle, b: Vehicle) => a.id - b.id).map((vehicle: Vehicle) => ({
+          ...vehicle,
+          image: vehicle.image ? `http://127.0.0.1:8000${vehicle.image}/` : null,
+        }));
+        setVehicles(sortedData);
+      } catch (error) {
+        console.error('Failed to fetch vehicles:', error);
+      }
+    };
+
+ 
+
 
   const columns: GridColDef[] = [
     {
@@ -60,19 +75,58 @@ const VehicleManagement: React.FC = () => {
         <Avatar src={params.value as string} alt="Vehicle" />
       ),
     },
-    { field: 'vehicle_name', headerName: 'Vehicle Name', width: 200 },
-    { field: 'vehicle_type', headerName: 'Vehicle Type', width: 150 },
-    { field: 'service_status', headerName: 'Service Status', width: 150 },
-    { field: 'next_service_date', headerName: 'Next Service Date', width: 200 },
+    { field: 'vehicle_name', headerName: 'Name', width: 100 },
+    { field: 'vehicle_type', headerName: 'Type', width: 110 },
+    { field: 'vehicle_mark', headerName: 'Mark', width: 100 },
+    { field: 'vehicle_model', headerName: 'Model', width: 100 },
+    { field: 'vehicle_year', headerName: 'Year', width: 100 },
     {
-      field: 'registration_renewal_date',
-      headerName: 'Registration Renewal Date',
+      field: 'service_status',
+      headerName: 'Service Status',
+      width: 150,
+      renderCell: (params: GridCellParams) => {
+        const getStatusColor = (status: string) => {
+          switch (status) {
+            case 'Service Due':
+              return 'orange';
+            case 'Needs Repair':
+              return 'red';
+            case 'Serviced':
+              return 'green';
+            default:
+              return 'gray';  // Default color if status is unknown
+          }
+        };
+        const value = params.value as string;
+
+        const color = getStatusColor(params.value as string);
+
+        return (
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <span style={{
+              height: '10px',
+              width: '10px',
+              backgroundColor: color,
+              borderRadius: '50%',
+              display: 'inline-block',
+              marginRight: '8px',
+            }} />
+            <span>{value ? value : 'N/A'}</span>
+          </div>
+        );
+      },
+    },
+    { field: 'next_service_date', headerName: 'Next Service Date', width: 150 },
+    { field: 'registration_renewal_date', headerName: 'Registration Renewal Date',
       width: 200,
     },
     {
+      
       field: 'actions',
       headerName: 'Actions',
       width: 150,
+
+
       renderCell: (params: GridCellParams) => (
         <>
           <IconButton onClick={() => handleEdit(params.row as Vehicle)}>
@@ -83,56 +137,104 @@ const VehicleManagement: React.FC = () => {
           </IconButton>
         </>
       ),
+
     },
   ];
 
   const validationSchema = Yup.object().shape({
     vehicle_name: Yup.string().required('Vehicle Name is required'),
     vehicle_type: Yup.string().required('Vehicle Type is required'),
-    service_status: Yup.string().required('Service Status is required'),
+    vehicle_mark:Yup.string().nullable(),
+    vehicle_model:Yup.string().nullable(),
+    vehicle_year:Yup.number().nullable(),
+    service_status: Yup.string().required('Service Status is required'),   
     next_service_date: Yup.date().nullable(),
     registration_renewal_date: Yup.date().nullable(),
-    image: Yup.string(),
+    image: Yup.mixed().nullable(),
   });
 
   const formik = useFormik({
     initialValues: {
       vehicle_name: '',
       vehicle_type: '',
+      vehicle_mark: '',
+      vehicle_year: null,
+      vehicle_model: '',
       service_status: '',
       next_service_date: null,
       registration_renewal_date: null,
-      image: '',
+      image:null,
     },
     validationSchema,
-    onSubmit: async (values) => {
+    onSubmit: (values) => {
       if (editMode) {
-        // Update vehicle in the backend
-        // Replace this with your actual API call
-        await fetch(`/api/vehicles/${selectedVehicle?.id}`, {
-          method: 'PUT',
-          body: JSON.stringify(values),
-        });
-        setVehicles((prevVehicles) =>
-          prevVehicles.map((vehicle) =>
-            vehicle.id === selectedVehicle?.id
-              ? { ...vehicle, ...values }
-              : vehicle
-          )
-        );
+        handleUpdate(values);
       } else {
-        // Create new vehicle in the backend
-        // Replace this with your actual API call
-        const response = await fetch('/api/vehicles', {
-          method: 'POST',
-          body: JSON.stringify(values),
-        });
-        const newVehicle = await response.json();
-        setVehicles((prevVehicles) => [...prevVehicles, newVehicle]);
+        handleSubmit(values);
       }
-      handleClose();
     },
   });
+
+  const handleSubmit = async (values) => {
+    const formData = new FormData();
+    Object.keys(values).forEach(key => {
+      if (key === 'image' && values[key]) {
+        formData.append(key, values[key]);
+      } else if (key !== 'image') {
+        formData.append(key, values[key]);
+      }
+    });
+  
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/vehicle/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setVehicles(prevVehicles => [...prevVehicles, response.data]);
+      handleClose();
+      fetchVehicles();
+
+    } catch (error) {
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        console.error(
+          'Request failed with status code:',
+          error.response.status
+        );
+        console.error('Error response:', error.response.data);
+        alert(
+          `Request failed with status code: ${
+            error.response.status
+          }\n${JSON.stringify(error.response.data)}`
+        );
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error('No response received:', error.request);
+        alert('No response received from the server. Please try again later.');
+      } else {
+        // Something happened in setting up the request that triggered an error
+        console.error('Error setting up request:', error.message);
+        alert(`Error setting up request: ${error.message}`);
+      }
+
+      // Display specific field errors
+      if (
+        error.response &&
+        error.response.data &&
+        typeof error.response.data === 'object'
+      ) {
+        const fieldErrors = Object.entries(error.response.data as Record<string, { string: string }[]>).map(
+          ([field, errors]) => {
+            return `${field}: ${errors
+              .map((error) => error.string)
+              .join(', ')}`;
+          }
+        );
+        alert(`Field errors:\n${fieldErrors.join('\n')}`);
+      }
+    }
+  };
 
   const handleOpen = () => {
     setOpen(true);
@@ -148,20 +250,52 @@ const VehicleManagement: React.FC = () => {
   };
 
   const handleDelete = async (vehicle: Vehicle) => {
-    // Delete vehicle from the backend
-    // Replace this with your actual API call
-    await fetch(`/api/vehicles/${vehicle.id}`, {
-      method: 'DELETE',
-    });
-    setVehicles((prevVehicles) =>
-      prevVehicles.filter((v) => v.id !== vehicle.id)
-    );
+    try {
+      await axios.delete(`http://127.0.0.1:8000/vehicle/${vehicle.id}/`);
+      setVehicles((prevVehicles) =>
+        prevVehicles.filter((item) => item.id !== vehicle.id)
+      );
+    } catch (error) {
+      console.error('Failed to delete vehicle', error);
+    }
   };
+  
+  const handleUpdate = async (values) => {
+    const formData = new FormData();
+    Object.keys(values).forEach(key => {
+      if (key === 'image') {
+        if (values[key] instanceof File) {
+          formData.append(key, values[key]);
+        } else if (!values[key]) {
+          formData.append(key, new Blob(), ''); // Append an empty file if no file is chosen
+        }
+      } else {
+        formData.append(key, values[key] ? values[key] : '');
+      }
+    });
+  
+    try {
+      const response = await axios.put(`http://127.0.0.1:8000/vehicle/${selectedVehicle?.id}/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      const updatedVehicles = vehicles.map(v => v.id === selectedVehicle?.id ? response.data : v);
+      setVehicles(updatedVehicles);
+      handleClose();
+      fetchVehicles();
 
+    } catch (error) {
+      console.error('Failed to update vehicle', error);
+      // Optionally handle user feedback here
+    }
+  };
+  
   const handleClose = () => {
     setOpen(false);
     setSelectedVehicle(null);
     formik.resetForm();
+    
   };
 
   return (
@@ -179,9 +313,15 @@ const VehicleManagement: React.FC = () => {
           Add Vehicle
         </Button>
       </div>
-      <div className="data-grid-container">
-        <DataGrid rows={vehicles} columns={columns} pagination autoPageSize autoHeight />
-      </div>
+      <Paper style={{ height: 400, width: '100%' }} className="data-grid-container">
+        <DataGrid
+        rows={vehicles} 
+        columns={columns} 
+        autoPageSize
+        pagination 
+        paginationMode="client" 
+        />
+      </Paper>
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
         <DialogTitle>{editMode ? 'Edit Vehicle' : 'Add Vehicle'}</DialogTitle>
         <DialogContent>
@@ -223,7 +363,54 @@ const VehicleManagement: React.FC = () => {
               <MenuItem value="Tractor">Tractor</MenuItem>
               <MenuItem value="Harvester">Harvester</MenuItem>
               <MenuItem value="Truck">Truck</MenuItem>
+              <MenuItem value="Other">Other</MenuItem>
             </TextField>
+            <TextField
+              fullWidth
+              id="vehicle_mark"
+              name="vehicle_mark"
+              label="Vehicle Mark"
+              value={formik.values.vehicle_mark}
+              onChange={formik.handleChange}
+              error={
+                formik.touched.vehicle_mark &&
+                Boolean(formik.errors.vehicle_mark)
+              }
+              helperText={
+                formik.touched.vehicle_mark && formik.errors.vehicle_mark
+              }
+              margin="normal"
+            />
+             <TextField
+              fullWidth
+              id="vehicle_model"
+              name="vehicle_model"
+              label="Vehicle Model"
+              value={formik.values.vehicle_model}
+              onChange={formik.handleChange}
+              error={
+                formik.touched.vehicle_model &&
+                Boolean(formik.errors.vehicle_model)
+              }
+              helperText={
+                formik.touched.vehicle_model && formik.errors.vehicle_model
+              }
+              margin="normal"
+            />
+             <TextField
+              fullWidth
+              id="vehicle_year"
+              name="vehicle_year"
+              label="Vehicle Year"
+              type="number"
+              value={formik.values.vehicle_year}
+              onChange={formik.handleChange}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              margin="normal"
+            />
+
             <TextField
               fullWidth
               id="service_status"
@@ -301,3 +488,4 @@ const VehicleManagement: React.FC = () => {
 };
 
 export default VehicleManagement;
+
