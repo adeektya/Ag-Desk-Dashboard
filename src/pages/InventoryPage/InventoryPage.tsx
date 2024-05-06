@@ -56,7 +56,20 @@ const InventoryPage = () => {
   };
 
   const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  
+  const handleClose = () => {
+    setOpen(false);
+    setEditMode(false); 
+    setFormData({ name: '',
+    item_type: '',
+    quantity: '',
+    status: '',
+    last_service_date: '',
+    service_details: '',
+    next_service_date: '',});
+    
+  };
+
   const handleChange = (event) => {
     const { name, value } = event.target;
     // Check if the field is a date field and if the value is empty
@@ -85,14 +98,6 @@ const InventoryPage = () => {
       next_service_date: formData.next_service_date || todayDate, // Default if empty
     };
     try {
-      // Check for empty required fields
-      if (
-        !formData.item_type ||
-        !formData.name ||
-        (formData.last_service_date && !formData.next_service_date)
-      ) {
-        throw new Error('Please fill all required fields.');
-      }
 
       // Submit the data
       const response = await axios.post(
@@ -251,7 +256,6 @@ const InventoryPage = () => {
     'feed',
     'tools',
     'machinery',
-    'vehicles',
   ];
   const statusOptions = ['operational', 'needs repair', 'service due'];
 
@@ -446,7 +450,7 @@ const InventoryPage = () => {
                 />
                 <DialogActions>
                   <Button
-                    onClick={editMode ? handleClose : handleClose}
+                    onClick={handleClose}
                     color="primary"
                   >
                     Cancel
