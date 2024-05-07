@@ -49,19 +49,19 @@ const VehicleManagement: React.FC = () => {
     fetchVehicles();
   }, []);
 
-    const fetchVehicles = async () => {
-      try {
-        const response = await axios.get('http://127.0.0.1:8000/vehicle/');
-        const data = response.data;
-        const sortedData = data.sort((a: Vehicle, b: Vehicle) => a.id - b.id).map((vehicle: Vehicle) => ({
-          ...vehicle,
-          image: vehicle.image ? `http://127.0.0.1:8000${vehicle.image}/` : null,
-        }));
-        setVehicles(sortedData);
-      } catch (error) {
-        console.error('Failed to fetch vehicles:', error);
-      }
-    };
+  const fetchVehicles = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/vehicle/');
+      const data = response.data;
+      const sortedData = data.sort((a: Vehicle, b: Vehicle) => a.id - b.id).map((vehicle: Vehicle) => ({
+        ...vehicle,
+        image: vehicle.image ? `http://127.0.0.1:8000${vehicle.image}/` : null,
+      }));
+      setVehicles(sortedData);
+    } catch (error) {
+      console.error('Failed to fetch vehicles:', error);
+    }
+  };
 
  
 
@@ -84,8 +84,8 @@ const VehicleManagement: React.FC = () => {
       field: 'service_status',
       headerName: 'Service Status',
       width: 150,
-      renderCell: (params: GridCellParams) => {
-        const getStatusColor = (status: string) => {
+      renderCell: (params) => {
+        const getStatusColor = (status) => {
           switch (status) {
             case 'Service Due':
               return 'orange';
@@ -97,25 +97,16 @@ const VehicleManagement: React.FC = () => {
               return 'gray';  // Default color if status is unknown
           }
         };
-        const value = params.value as string;
-
-        const color = getStatusColor(params.value as string);
-
+    
+        const color = getStatusColor(params.value);
         return (
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span style={{
-              height: '10px',
-              width: '10px',
-              backgroundColor: color,
-              borderRadius: '50%',
-              display: 'inline-block',
-              marginRight: '8px',
-            }} />
-            <span>{value ? value : 'N/A'}</span>
-          </div>
+          <span style={{ color: color, fontWeight: 'bold' }}>
+            {params.value}
+          </span>
         );
-      },
+      }
     },
+    
     { field: 'next_service_date', headerName: 'Next Service Date', width: 150 },
     { field: 'registration_renewal_date', headerName: 'Registration Renewal Date',
       width: 200,
