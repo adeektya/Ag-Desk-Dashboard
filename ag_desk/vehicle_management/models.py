@@ -5,7 +5,7 @@ class VehicleItem(models.Model):
     id = models.AutoField(primary_key=True)
     vehicle_name = models.CharField(max_length=100)
     vehicle_type = models.CharField(max_length=100, db_index=True)
-    vehicle_mark = models.CharField(max_length=100)
+    vehicle_make = models.CharField(max_length=100)
     vehicle_model = models.CharField(max_length=100)
     vehicle_year = models.IntegerField(db_index=True)
     service_status = models.CharField(max_length=100)
