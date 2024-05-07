@@ -88,6 +88,12 @@
   padding: 10px 20px !important;
   text-transform: none !important;
 }
+.custom-buttondeletebtn{
+
+  padding: 10px 20px !important;
+ 
+}
+
 
 .custom-button:hover {
   background-color: #0d47a1 !important;  /* Darker primary color on hover */
