@@ -246,7 +246,7 @@ const SectionPage = () => {
     { field: 'section_name', headerName: 'Section Name', width: 150 },
     { field: 'location', headerName: 'Location', width: 150 },
     { field: 'size_acers', headerName: 'Size (acre)', width: 150 },
-    { field: 'section_type', headerName: 'Status', width: 150 },
+    { field: 'section_type', headerName: 'Section Type', width: 150 },
     { field: 'add_info', headerName: 'Remark', width: 200 },
     {
       field: 'actions',
