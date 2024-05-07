@@ -15,7 +15,7 @@ class VehicleSerializer(serializers.ModelSerializer):
         # Update the existing InventoryItem instance with the validated data
         instance.vehicle_name = validated_data.get('vehicle_name', instance.vehicle_name)
         instance.vehicle_type = validated_data.get('vehicle_type', instance.vehicle_type)
-        instance.vehicle_mark = validated_data.get('vehicle_mark', instance.vehicle_mark)
+        instance.vehicle_make = validated_data.get('vehicle_make', instance.vehicle_mak)
         instance.vehicle_model = validated_data.get('vehicle_model', instance.vehicle_model)
         instance.vehicle_year = validated_data.get('vehicle_year', instance.vehicle_year)
         instance.service_status = validated_data.get('service_status', instance.service_status)
