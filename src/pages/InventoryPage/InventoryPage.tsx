@@ -242,6 +242,8 @@ const InventoryPage = () => {
     } catch (error) {
       console.error('Error processing deletions:', error);
     }
+    handleCloseConfirmDialog();
+
   };
 
   // Optional: Confirmation dialog state
