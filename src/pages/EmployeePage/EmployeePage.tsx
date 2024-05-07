@@ -24,7 +24,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import User17 from '../../images/user/user-17.png';
+import axios from 'axios';
 import {
   fetchEmployees,
   createEmployee,
@@ -38,6 +38,7 @@ const EmployeePage = () => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [employees, setEmployees] = useState([]);
+  const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState(null);
@@ -138,7 +139,70 @@ const EmployeePage = () => {
       console.error(e);
     }
   };
+  const [selectedRows, setSelectedRows] = useState([]);
 
+  const handleDeleteSelected = async () => {
+    try {
+      if (selectedRows.length === 0) {
+        console.log('No items selected for deletion.');
+        return; // Early return if no items are selected
+      }
+  
+      const deletePromises = selectedRows.map((id) =>
+        deleteEmployee(id)
+          .then(() => ({ success: true, id }))
+          .catch((error) => ({
+            success: false,
+            id,
+            error: error.message || 'Failed to delete item',
+          }))
+      );
+  
+      const optionPromises = selectedRows.map((id) =>
+        axios
+          .options(`http://127.0.0.1:8000/employee/${id}/`)
+          .then(() => ({ success: true, id }))
+          .catch((error) => ({
+            success: false,
+            id,
+            error: error.message || 'Failed to send OPTIONS request',
+          }))
+      );
+  
+      // Send OPTIONS requests first
+      await Promise.all(optionPromises);
+  
+      // Then send DELETE requests
+      const deleteResults = await Promise.all(deletePromises);
+      const failedDeletes = deleteResults.filter((result) => !result.success);
+      if (failedDeletes.length > 0) {
+        console.error('Some items failed to delete:', failedDeletes);
+        alert('Failed to delete some items.');
+      }
+  
+      // Update the rows removing only the successfully deleted ones
+      const deletedIds = deleteResults
+        .filter((result) => result.success)
+        .map((result) => result.id);
+      setRows((currentRows) =>
+        currentRows.filter((row) => !deletedIds.includes(row.id))
+      );
+  
+      // Update the employees state to remove the deleted employees
+      setEmployees((currentEmployees) =>
+        currentEmployees.filter((emp) => !deletedIds.includes(emp.employee_id))
+      );
+  
+      setSelectedRows([]);
+  
+      if (failedDeletes.length === 0) {
+        alert('All selected items were successfully deleted.');
+      }
+    } catch (error) {
+      console.error('Error processing deletions:', error);
+    }
+  };
+  
   const columns = [
     {
       field: 'image',
@@ -223,11 +287,23 @@ const EmployeePage = () => {
         variant="contained"
         startIcon={<AddIcon />}
         onClick={() => setOpen(true)}
-        sx={{ mb: 2 }}
-        className="mui-button custom-button" 
+        sx={{ mb: 2, mr: 1 }} 
+        className="custom-button" 
       >
         Add Employee
       </Button>
+      <Button
+        variant="contained"
+        color="error"
+        onClick={handleDeleteSelected}
+        startIcon={<DeleteIcon />}
+        disabled={selectedRows.length === 0}// Disable button if no rows are selected
+        sx={{ mb: 2 }}
+        className="custom-buttondeletebtn" 
+      >
+        Delete Selected
+      </Button>
+      
       <div
         style={{ height: 400, width: '100%' }}
         className="data-grid-container"
@@ -240,7 +316,12 @@ const EmployeePage = () => {
           filterMode='server'
           sortingMode='server'
           checkboxSelection
+          onRowSelectionModelChange={(newSelectionModel) => {
+            setSelectedRows(newSelectionModel);
+          }}
+          rowSelectionModel={selectedRows}
           getRowId={(row) => row.employee_id}
+          
         />
       </div>
       <Dialog
