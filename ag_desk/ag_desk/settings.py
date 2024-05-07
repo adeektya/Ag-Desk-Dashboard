@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     "vehicle_management",
     "calendar_events",
     'user_management',
+    "section_management",
     'rest_framework.authtoken',
     # Third-party apps
     'django.contrib.sites',
@@ -88,6 +89,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    
 ]
 
 MIDDLEWARE = [
