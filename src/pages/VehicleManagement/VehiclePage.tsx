@@ -291,7 +291,7 @@ const VehicleManagement: React.FC = () => {
 
   return (
     <DefaultLayout>
-       <Breadcrumb pageName="Vehicle Mangement" />
+       <Breadcrumb pageName="Vehicle Management" />
     <div>
       <div className="header">
         <Button
