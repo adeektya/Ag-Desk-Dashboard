@@ -29,7 +29,7 @@ interface Vehicle {
   id: number;
   vehicle_name: string;
   vehicle_type: string;
-  vehicle_mark: string;
+  vehicle_make: string;
   vehicle_model: string;
   vehicle_year: number;
   service_status: string;
@@ -77,7 +77,7 @@ const VehicleManagement: React.FC = () => {
     },
     { field: 'vehicle_name', headerName: 'Name', width: 100 },
     { field: 'vehicle_type', headerName: 'Type', width: 110 },
-    { field: 'vehicle_mark', headerName: 'Mark', width: 100 },
+    { field: 'vehicle_make', headerName: 'Make', width: 100 },
     { field: 'vehicle_model', headerName: 'Model', width: 100 },
     { field: 'vehicle_year', headerName: 'Year', width: 100 },
     {
@@ -135,7 +135,7 @@ const VehicleManagement: React.FC = () => {
   const validationSchema = Yup.object().shape({
     vehicle_name: Yup.string().required('Vehicle Name is required'),
     vehicle_type: Yup.string().required('Vehicle Type is required'),
-    vehicle_mark:Yup.string().nullable(),
+    vehicle_make:Yup.string().nullable(),
     vehicle_model:Yup.string().nullable(),
     vehicle_year:Yup.number().nullable(),
     service_status: Yup.string().required('Service Status is required'),   
@@ -148,7 +148,7 @@ const VehicleManagement: React.FC = () => {
     initialValues: {
       vehicle_name: '',
       vehicle_type: '',
-      vehicle_mark: '',
+      vehicle_make: '',
       vehicle_year: null,
       vehicle_model: '',
       service_status: '',
@@ -358,17 +358,17 @@ const VehicleManagement: React.FC = () => {
             </TextField>
             <TextField
               fullWidth
-              id="vehicle_mark"
-              name="vehicle_mark"
-              label="Vehicle Mark"
-              value={formik.values.vehicle_mark}
+              id="vehicle_make"
+              name="vehicle_make"
+              label="Vehicle Make"
+              value={formik.values.vehicle_make}
               onChange={formik.handleChange}
               error={
-                formik.touched.vehicle_mark &&
-                Boolean(formik.errors.vehicle_mark)
+                formik.touched.vehicle_make &&
+                Boolean(formik.errors.vehicle_make)
               }
               helperText={
-                formik.touched.vehicle_mark && formik.errors.vehicle_mark
+                formik.touched.vehicle_make && formik.errors.vehicle_make
               }
               margin="normal"
             />
