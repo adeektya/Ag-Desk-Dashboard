@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Calendar from './pages/Calendar/Calendar';
 import TaskKanban from './pages/Task/TaskKanban';
 import InventoryPage from './pages/InventoryPage/InventoryPage';
+import SectionPage from './pages/SectionPage/sectionPage';
 
 import Loader from './common/Loader';
 import PageTitle from './components/PageTitle';
@@ -37,6 +38,15 @@ function App() {
             <>
               <PageTitle title="Ag-Desk| Farm management Dashboard" />
               <Dashboard />
+            </>
+          }
+        />
+        <Route
+          path="/SectionPage"
+          element={
+            <>
+              <PageTitle title="Section Management | Ag-Desk" />
+              <SectionPage />
             </>
           }
         />
