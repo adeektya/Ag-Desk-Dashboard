@@ -7,6 +7,8 @@ import PeopleIcon from '@mui/icons-material/People';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CarRepairIcon from '@mui/icons-material/CarRepair';
+import GrassIcon from '@mui/icons-material/Grass';
+
 import './sidebar.css';
 
 const icons = {
@@ -16,6 +18,7 @@ const icons = {
   Inventory: <Inventory2Icon />,
   Employees: <PeopleIcon />,
   Vehicles: <CarRepairIcon />,
+  Section:<GrassIcon/>
 };
 
 interface SidebarProps {
@@ -194,6 +197,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               {/* <!-- Menu Item Task --> */}
 
               {/* <!-- Menu Item Inventory --> */}
+              <NavLink
+                to="/SectionPage" // Adjust this to the actual route
+                className={getNavLinkClass('/section')}
+              >
+                {icons.Section}
+                <span className="link-text">Section</span>
+              </NavLink>
               <NavLink
                 to="/InventoryPage" // Adjust this to the actual route
                 className={getNavLinkClass('/inventory')}
