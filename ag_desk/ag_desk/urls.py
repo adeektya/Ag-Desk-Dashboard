@@ -31,5 +31,7 @@ urlpatterns = [
     path ('vehicle/', include('vehicle_management.urls')),
     path('calendar/', include('calendar_events.urls')), 
     path('user/', include('user_management.urls')),
+    path('section/', include('section_management.urls')),
+
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
