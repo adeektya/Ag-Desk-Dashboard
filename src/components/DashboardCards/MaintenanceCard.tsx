@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Card,
   CardContent,
@@ -11,24 +12,45 @@ import {
 import './maintenancecard.css';
 
 const EquipmentMaintenanceCard: React.FC = () => {
-  const [equipment, setEquipment] = useState({
-    upcomingServices: [],
-    maintenanceHistory: [],
-  });
+  const [upcomingServiceVehicles, setUpcomingServiceVehicles] = useState([]);
+  const [maintenanceRequiredVehicles, setMaintenanceRequiredVehicles] = useState([]);
 
   useEffect(() => {
-    // Replace with your actual fetch call
-    setEquipment({
-      upcomingServices: [
-        { name: 'Tractor', date: '2024-05-01' },
-        { name: 'Combine Harvester', date: '2024-05-15' },
-      ],
-      maintenanceHistory: [
-        { name: 'Tractor', date: '2024-01-20', details: 'Oil change' },
-        { name: 'Plow', date: '2024-01-22', details: 'Replaced blades' },
-      ],
-    });
+    fetchVehicles();
   }, []);
+
+  const fetchVehicles = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/vehicle/');
+      const data = response.data;
+
+      // Filter vehicles whose next_service_date or registration_renewal_date is within one month from today
+      const today = new Date();
+      const oneMonthFromNow = new Date(today);
+      oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+
+      const upcomingServicesVehicles = data.filter((vehicle) => {
+        const nextServiceDate = new Date(vehicle.next_service_date);
+        const registrationRenewalDate = new Date(vehicle.registration_renewal_date);
+        return (
+          nextServiceDate <= oneMonthFromNow || 
+          registrationRenewalDate <= oneMonthFromNow
+        );
+      });
+
+      setUpcomingServiceVehicles(upcomingServicesVehicles);
+
+      // Filter vehicles based on service status (service due or needs repair)
+      const maintenanceRequiredVehicles = data.filter(
+        (vehicle) =>
+          vehicle.service_status === 'Service Due' ||
+          vehicle.service_status === 'Needs Repair'
+      );
+      setMaintenanceRequiredVehicles(maintenanceRequiredVehicles);
+    } catch (error) {
+      console.error('Failed to fetch vehicles:', error);
+    }
+  };
 
   return (
     <Card className="equipment-maintenance-card">
@@ -38,7 +60,7 @@ const EquipmentMaintenanceCard: React.FC = () => {
           component="h2"
           className="equipment-maintenance-header"
         >
-          Equipment Maintenance
+          Vehicle Maintenance
         </Typography>
         <Typography
           sx={{ mt: 2 }}
@@ -48,15 +70,13 @@ const EquipmentMaintenanceCard: React.FC = () => {
           Upcoming Service Dates
         </Typography>
         <List className="service-list">
-          {equipment.upcomingServices.map((service, index) => (
+          {upcomingServiceVehicles.map((vehicle, index) => (
             <ListItem key={index} className="service-list-item">
               <ListItemText
-                primary={service.name}
-                secondary={`Service due: ${service.date}`}
+                primary={vehicle.vehicle_name}
+                secondary={`Next Service Date: ${vehicle.next_service_date}, Registration Renewal Date: ${vehicle.registration_renewal_date}`}
                 primaryTypographyProps={{ className: 'service-item-primary' }}
-                secondaryTypographyProps={{
-                  className: 'service-item-secondary',
-                }}
+                secondaryTypographyProps={{ className: 'service-item-secondary' }}
               />
             </ListItem>
           ))}
@@ -67,21 +87,17 @@ const EquipmentMaintenanceCard: React.FC = () => {
           color="text.secondary"
           className="maintenance-history-header"
         >
-          Maintenance History
+          Maintenance Required
         </Typography>
         <List
           sx={{ maxHeight: 200, overflow: 'auto' }}
           className="history-list"
         >
-          {equipment.maintenanceHistory.map((history, index) => (
+          {maintenanceRequiredVehicles.map((vehicle, index) => (
             <ListItem key={index} className="history-list-item">
               <ListItemText
-                primary={history.name}
-                secondary={`${history.details} on ${history.date}`}
+                primary={`${vehicle.vehicle_name} -  ${vehicle.service_status}`}
                 primaryTypographyProps={{ className: 'history-item-primary' }}
-                secondaryTypographyProps={{
-                  className: 'history-item-secondary',
-                }}
               />
             </ListItem>
           ))}
