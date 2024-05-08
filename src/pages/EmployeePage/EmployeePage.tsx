@@ -73,21 +73,21 @@ const EmployeePage = () => {
           ...values,
           startDate: new Date(values.startDate).toISOString().split('T')[0],
         };
-
+    
         if (editMode) {
           const updatedEmployee = await updateEmployee(
             currentEmployee.employee_id,
             formData
           );
           const updatedEmployees = employees.map((emp) =>
-            emp.id === currentEmployee.id ? updatedEmployee : emp
+            emp.employee_id === updatedEmployee.employee_id ? updatedEmployee : emp
           );
           setEmployees(updatedEmployees);
         } else {
           const newEmployee = await createEmployee(formData);
           setEmployees([...employees, newEmployee]);
         }
-
+    
         setOpen(false);
         setError('');
       } catch (e) {
@@ -96,6 +96,8 @@ const EmployeePage = () => {
         console.error(e);
       }
     },
+    
+    
   });
 
   useEffect(() => {
@@ -128,6 +130,7 @@ const EmployeePage = () => {
     });
     setOpen(true);
   };
+  
   const handleDelete = async (employeeId) => {
     try {
       await deleteEmployee(employeeId);
@@ -205,12 +208,16 @@ const EmployeePage = () => {
   
   const columns = [
     {
-      field: 'image',
-      headerName: 'Photo',
-      renderCell: (params) => (
-        <Avatar src={params.value ? `${API_URL}${params.value}` : ''} alt={params.row.name} />
-      ),
+    field: 'photo',
+    headerName: 'Photo',
+    renderCell: (params) => {
+      // Log the value of params.value
+      console.log('Photo URL:', params.value);
+      
+      // Return the Avatar component with the correct URL
+      return <Avatar src={params.value ? `http://127.0.0.1:8000${params.value}/` : ''} alt={params.row.name} />;
     },
+  },
     {
       field: 'name',
       headerName: 'Employee Name',
