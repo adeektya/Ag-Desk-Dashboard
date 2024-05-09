@@ -24,6 +24,7 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import SwimLane from '../../components/Swimlanes/SwimLane.js';
 import { fetchEmployees } from '../EmployeePage/api.js';
+import { useFarm } from '../../contexts/FarmContext';
 
 interface TaskDetails {
   type: string;
@@ -42,6 +43,7 @@ interface FormErrors {
 }
 
 const TaskKanban: React.FC = () => {
+  const { activeFarm } = useFarm();
   const [formErrors, setFormErrors] = useState<FormErrors>({
     type: '',
     title: '',
@@ -74,6 +76,12 @@ const TaskKanban: React.FC = () => {
     subtasks: [{ description: '' }],
     assignedEmployee: '',
   });
+
+  useEffect(() => {
+    if (activeFarm) {
+      fetchTasks();
+    }
+  }, [activeFarm]);
 
   const handleEditTask = (taskId: number) => {
     const taskToEdit = findTaskById(taskId);
@@ -126,7 +134,7 @@ const TaskKanban: React.FC = () => {
 
   const fetchTasks = () => {
     axios
-      .get('http://127.0.0.1:8000/api/tasks/')
+      .get(`http://127.0.0.1:8000/api/tasks/?farm_id=${activeFarm.id}`)
       .then((response) => {
         const fetchedTasks = response.data;
         const tasksByStatus = fetchedTasks.reduce((acc, task) => {
@@ -267,6 +275,7 @@ const TaskKanban: React.FC = () => {
       severity: taskDetails.severity,
       assigned_employee: taskDetails.assignedEmployee,
       due_date: taskDetails.dueDate,
+      farm: activeFarm.id,
       subtasks: taskDetails.subtasks.map((subtask) => ({
         description: subtask.description,
         completed: false,
@@ -527,7 +536,10 @@ const TaskKanban: React.FC = () => {
 
           <div className="task-manager__board">
             {Object.entries(kanbanData).map(([status, data]) => {
-              console.log(`Swimlane Props before passing - Status: ${status}, Data: `, data);
+              console.log(
+                `Swimlane Props before passing - Status: ${status}, Data: `,
+                data
+              );
               return (
                 <SwimLane
                   key={status}

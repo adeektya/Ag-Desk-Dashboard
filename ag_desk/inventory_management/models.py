@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from farm.models import Farm
 
 class InventoryItem(models.Model):
     TYPE_CHOICES = [
@@ -23,6 +24,7 @@ class InventoryItem(models.Model):
     last_service_date = models.DateField(null=True, blank=True)
     service_details = models.TextField(blank=True)
     next_service_date = models.DateField(null=True, blank=True)
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='inventory_items')
 
     def __str__(self):
         return self.name

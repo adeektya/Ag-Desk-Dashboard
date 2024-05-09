@@ -6,8 +6,17 @@ from rest_framework import status
 
 
 class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()
     serializer_class = TaskSerializer
+    def get_queryset(self):
+        """
+        Optionally restricts the returned tasks to a given farm,
+        by filtering against a `farm_id` query parameter in the URL.
+        """
+        queryset = Task.objects.all()
+        farm_id = self.request.query_params.get('farm_id', None)
+        if farm_id is not None:
+            queryset = queryset.filter(farm_id=farm_id)
+        return queryset
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()

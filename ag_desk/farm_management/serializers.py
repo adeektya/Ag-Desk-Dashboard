@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Task, Subtask
 from employee_management.models import Employee
+from farm.models import Farm
 
 
 class SubtaskSerializer(serializers.ModelSerializer):
@@ -15,6 +16,11 @@ class TaskSerializer(serializers.ModelSerializer):
         queryset=Employee.objects.all(),
         allow_null=True,  # Since it can be blank
         required=False,  # Not required
+    )
+    
+    farm = serializers.PrimaryKeyRelatedField(
+        queryset=Farm.objects.all(),
+        write_only=True  # Make farm write-only if you do not wish to send this in response
     )
     assigned_employee_name = serializers.SerializerMethodField()  # Add this line
 
@@ -32,6 +38,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "subtasks",
             "assigned_employee",
             "assigned_employee_name",
+            "farm"
         ]
 
     def get_assigned_employee_name(self, obj):

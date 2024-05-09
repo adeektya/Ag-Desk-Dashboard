@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from farm.models import Farm
 
 
 class Employee(models.Model):
@@ -22,6 +23,7 @@ class Employee(models.Model):
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, default="employee")
     contactNumber = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='employees')
     section = models.CharField(
         max_length=1, choices=EMPLOYEE_SECTION_CHOICES, default="A"
     )

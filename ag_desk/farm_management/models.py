@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from employee_management.models import Employee
+from farm.models import Farm
 
 
 from django.db import models
@@ -26,6 +27,7 @@ class Task(models.Model):
     due_date = models.DateField(null=True, blank=True) 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='tasks')
     assigned_employee = models.ForeignKey(
         Employee,
         on_delete=models.SET_NULL,

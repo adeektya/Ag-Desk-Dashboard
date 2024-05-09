@@ -17,11 +17,13 @@ import moment from 'moment';
 import axios from 'axios';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './calendar.css';
+import { useFarm } from '../../contexts/FarmContext';
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
 
 const Calendar = () => {
+  const { activeFarm } = useFarm();
   const [calEvents, setCalEvents] = useState([]);
   const [tasks, setTasks] = useState([]);
   const [open, setOpen] = useState(false);
@@ -33,13 +35,19 @@ const Calendar = () => {
   const [isTask, setIsTask] = useState(false);
 
   useEffect(() => {
-    fetchCalendarEvents();
-    fetchTasksWithDueDate();
-  }, []);
+    if (activeFarm) {
+      fetchCalendarEvents();
+      fetchTasksWithDueDate();
+    }
+  }, [activeFarm]);
 
   const fetchCalendarEvents = () => {
+    if (!activeFarm) return;
+
     axios
-      .get('http://127.0.0.1:8000/calendar/events/')
+      .get(`http://127.0.0.1:8000/calendar/events/?farm_id=${activeFarm.id}`, {
+        headers: { Authorization: `Token ${localStorage.getItem('token')}` },
+      })
       .then((response) => {
         const formattedEvents = response.data.map((event) => ({
           ...event,
@@ -55,22 +63,25 @@ const Calendar = () => {
   };
 
   const fetchTasksWithDueDate = () => {
-    axios
-      .get('http://127.0.0.1:8000/api/tasks/')
-      .then((response) => {
-        const tasksWithDueDate = response.data.filter((task) => task.due_date);
-        const formattedTasks = tasksWithDueDate.map((task) => ({
-          ...task,
-          taskId: task.id,
-          start: new Date(task.due_date),
-          end: new Date(task.due_date),
-          color: getTaskSeverityColor(task.severity),
-        }));
-        setTasks(formattedTasks);
-      })
-      .catch((error) => {
-        console.error('Error fetching tasks:', error);
-      });
+    if (!activeFarm) return; // Guard clause if no active farm is selected
+  
+    axios.get(`http://127.0.0.1:8000/api/tasks/?farm_id=${activeFarm.id}`, { // Use active farm's ID in API
+      headers: { Authorization: `Token ${localStorage.getItem('token')}` },
+    })
+    .then((response) => {
+      const tasksWithDueDate = response.data.filter((task) => task.due_date);
+      const formattedTasks = tasksWithDueDate.map((task) => ({
+        ...task,
+        taskId: task.id,
+        start: new Date(task.due_date),
+        end: new Date(task.due_date),
+        color: getTaskSeverityColor(task.severity),
+      }));
+      setTasks(formattedTasks);
+    })
+    .catch((error) => {
+      console.error('Error fetching tasks:', error);
+    });
   };
 
   const getEventSeverityColor = (severity) => {
@@ -133,6 +144,7 @@ const Calendar = () => {
       start_time: startDate,
       end_time: endDate,
       severity,
+      farm: activeFarm.id,
     };
 
     if (isTask) {
@@ -163,15 +175,26 @@ const Calendar = () => {
   const createEvent = (e) => {
     e.preventDefault();
 
+    if (!activeFarm) {
+      console.error('No active farm selected.');
+      return;
+    }
+
     const eventData = {
       title,
       start_time: startDate,
       end_time: endDate,
       severity,
+      farm: activeFarm.id, // Assuming the backend expects a 'farm' field
     };
 
     axios
-      .post('http://127.0.0.1:8000/calendar/events/', eventData)
+      .post('http://127.0.0.1:8000/calendar/events/', eventData, {
+        headers: {
+          Authorization: `Token ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json',
+        },
+      })
       .then((response) => {
         fetchCalendarEvents();
         setOpen(false);

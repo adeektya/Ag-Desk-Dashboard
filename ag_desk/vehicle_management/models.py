@@ -1,4 +1,5 @@
 from django.db import models
+from farm.models import Farm
 
 
 class Vehicle(models.Model):
@@ -9,6 +10,8 @@ class Vehicle(models.Model):
     next_service_date = models.DateField(null=True, blank=True)
     registration_renewal_date = models.DateField(null=True, blank=True)
     #farm_id = models.ForeignKey(FarmDetails, on_delete=models.CASCADE, related_name='vehicles')
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='vehicles')
+    
 
     #class Meta:
         # Define the composite primary key

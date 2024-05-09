@@ -24,8 +24,10 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
+import { useFarm } from '../../contexts/FarmContext';
 
 const InventoryPage = () => {
+  const { activeFarm } = useFarm();
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -38,22 +40,32 @@ const InventoryPage = () => {
     last_service_date: '',
     service_details: '',
     next_service_date: '',
+
   });
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
-  useEffect(() => {
-    fetchInventory();
-  }, []);
-
   const fetchInventory = async () => {
+    if (!activeFarm) {
+      console.log('No active farm selected.');
+      return;
+    }
     try {
-      const response = await axios.get('http://127.0.0.1:8000/inventory/');
+      const response = await axios.get(
+        `http://127.0.0.1:8000/inventory/?farm_id=${activeFarm.id}`,
+        {
+          headers: { Authorization: `Token ${localStorage.getItem('token')}` },
+        }
+      );
       setRows(response.data);
     } catch (error) {
-      console.error('Failed to fetch inventory', error);
+      console.error('Failed to fetch inventory for farm:', error);
     }
   };
+
+  useEffect(() => {
+    fetchInventory();
+  }, [activeFarm]); // Refetch whenever the activeFarm changes
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -81,6 +93,7 @@ const InventoryPage = () => {
     const todayDate = getTodayDate();
     const updatedFormData = {
       ...formData,
+      farm: activeFarm.id,
       last_service_date: formData.last_service_date || todayDate, // Default if empty
       next_service_date: formData.next_service_date || todayDate, // Default if empty
     };
@@ -130,13 +143,11 @@ const InventoryPage = () => {
         error.response.data &&
         typeof error.response.data === 'object'
       ) {
-        const fieldErrors = Object.entries(error.response.data as Record<string, { string: string }[]>).map(
-          ([field, errors]) => {
-            return `${field}: ${errors
-              .map((error) => error.string)
-              .join(', ')}`;
-          }
-        );
+        const fieldErrors = Object.entries(
+          error.response.data as Record<string, { string: string }[]>
+        ).map(([field, errors]) => {
+          return `${field}: ${errors.map((error) => error.string).join(', ')}`;
+        });
         alert(`Field errors:\n${fieldErrors.join('\n')}`);
       }
     }

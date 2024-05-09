@@ -8,6 +8,12 @@ import Inventory2Icon from '@mui/icons-material/Inventory2';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CarRepairIcon from '@mui/icons-material/CarRepair';
 import './sidebar.css';
+import axios from 'axios';
+import { useFarm } from '../../contexts/FarmContext';
+import EditIcon from '@mui/icons-material/Edit';
+import FarmFormDialog from './farmform';
+
+const API_URL = 'http://127.0.0.1:8000/farm/farm/';
 
 const icons = {
   Dashboard: <DashboardIcon />,
@@ -29,25 +35,129 @@ interface Farm {
 }
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
-  const [farms, setFarms] = useState<Farm[]>([
-    { id: 'default', name: 'Main Farm' }, // Default farm
-  ]);
-  const [activeFarm, setActiveFarm] = useState<Farm>(farms[0]);
+  const { farms, activeFarm, setActiveFarm, updateFarms } = useFarm();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState('add'); // 'add' or 'edit'
+  const [currentFarm, setCurrentFarm] = useState(null);
 
-  const handleAddFarm = () => {
-    const farmName = prompt('Please enter the new farm name:');
-    if (farmName) {
-      const newFarm = { id: Date.now().toString(), name: farmName };
-      setFarms([...farms, newFarm]);
+  const handleOpenDialog = (type, farm) => {
+    setDialogType(type);
+    setCurrentFarm(type === 'edit' ? farm : null);
+    setIsDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    setCurrentFarm(null);
+  };
+
+  useEffect(() => {
+    if (farms.length === 0) {
+      fetchFarms();
+    }
+  }, [farms]);
+
+  const fetchFarms = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await axios.get(API_URL, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      console.log('Fetched farms:', response.data);
+      updateFarms(response.data);
+    } catch (error) {
+      console.error('Error fetching farms:', error);
     }
   };
 
-  const handleFarmChange = (farmId: string) => {
-    const selectedFarm = farms.find((farm) => farm.id === farmId);
+  const handleFarmSubmit = async (formData) => {
+    const token = localStorage.getItem('token');
+    const url = currentFarm ? `${API_URL}${currentFarm.id}/` : API_URL;
+    const method = currentFarm ? 'put' : 'post';
+
+    try {
+      const response = await axios[method](url, formData, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      updateFarms(
+        currentFarm
+          ? farms.map((f) => (f.id === currentFarm.id ? response.data : f))
+          : [...farms, response.data]
+      );
+      setActiveFarm(response.data);
+      handleCloseDialog();
+      alert(`Farm ${currentFarm ? 'updated' : 'added'} successfully!`);
+    } catch (error) {
+      console.error(
+        `Error ${currentFarm ? 'updating' : 'adding'} farm:`,
+        error
+      );
+      alert(`Failed to ${currentFarm ? 'update' : 'add'} farm.`);
+    }
+  };
+  const handleEditFarm = (farm) => {
+    const token = localStorage.getItem('token');
+    const newName = prompt('Enter new farm name:', farm.name);
+    const newAddress = prompt('Enter new farm address:', farm.address);
+
+    if (newName && newAddress) {
+      axios
+        .put(
+          `${API_URL}${farm.id}/`,
+          { name: newName, address: newAddress },
+          {
+            headers: { Authorization: `Token ${token}` },
+          }
+        )
+        .then((response) => {
+          updateFarms(farms.map((f) => (f.id === farm.id ? response.data : f)));
+          setActiveFarm(response.data);
+          alert('Farm updated successfully!');
+        })
+        .catch((error) => {
+          console.error('Error updating farm:', error);
+          alert('Failed to update farm.');
+        });
+    }
+  };
+
+  const handleDeleteFarm = async () => {
+    const confirm = window.confirm(
+      'Are you sure you want to delete this farm and all associated data?'
+    );
+    if (!confirm || !currentFarm) return;
+
+    const token = localStorage.getItem('token');
+    try {
+      await axios.delete(`${API_URL}${currentFarm.id}/`, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      updateFarms(farms.filter((f) => f.id !== currentFarm.id));
+      setActiveFarm(null);
+      handleCloseDialog();
+      alert('Farm deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting farm:', error);
+      alert('Failed to delete farm.');
+    }
+  };
+
+  const handleFarmChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const farmId = e.target.value; // This might be a string from the dropdown
+    const selectedFarm = farms.find((farm) => farm.id.toString() === farmId); // Ensure both are strings
+
     if (selectedFarm) {
-      setActiveFarm(selectedFarm);
+      setActiveFarm(selectedFarm); // Set active farm using context method
+      console.log('Active farm set to:', selectedFarm); // Helpful logging
+    } else {
+      console.error('Selected farm not found in the list:', farmId);
     }
   };
+
+  // Ensure this part is added right after the state set to check the updated value
+  useEffect(() => {
+    console.log('Currently active farm:', activeFarm);
+  }, [activeFarm]);
 
   const getNavLinkClass = (path) => {
     return location.pathname === path ? 'nav-link active' : 'nav-link';
@@ -142,10 +252,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
       <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
         {/* Dropdown for selecting active farm */}
+
         <select
+          onChange={handleFarmChange}
+          value={activeFarm?.id || ''}
           className="dark:bg-dark-secondary mx-4 my-4 rounded bg-white p-2"
-          onChange={(e) => handleFarmChange(e.target.value)}
-          value={activeFarm.id}
         >
           {farms.map((farm) => (
             <option key={farm.id} value={farm.id}>
@@ -212,13 +323,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
               {/* <!-- Menu Item Employee --> */}
               <NavLink
-              to="/VehiclePage"
-              className={getNavLinkClass('/vehicle')}
-              
+                to="/VehiclePage"
+                className={getNavLinkClass('/vehicle')}
               >
                 {icons.Vehicles}
                 <span className="link-text">Vehicles</span>
-               
               </NavLink>
             </ul>
           </div>
@@ -228,12 +337,28 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         <div className="mx-4 my-2">
           <button
             className="flex w-full items-center justify-center gap-2 rounded bg-green-500 px-4 py-2 text-white"
-            onClick={handleAddFarm}
+            onClick={() => handleOpenDialog('add', null)}
           >
             <AddCircleOutlineIcon />
             Add Farm
           </button>
         </div>
+        <div className="mx-4 my-2">
+          <button
+            className="flex w-full items-center justify-center gap-2 rounded bg-blue-500 px-4 py-2 text-white"
+            onClick={() => handleOpenDialog('edit', activeFarm)}
+          >
+            <EditIcon />
+            Edit Farm
+          </button>
+        </div>
+        <FarmFormDialog
+          open={isDialogOpen}
+          handleClose={handleCloseDialog}
+          handleSubmit={handleFarmSubmit}
+          initialData={currentFarm}
+          handleDelete={handleDeleteFarm}
+        />
       </div>
     </aside>
   );

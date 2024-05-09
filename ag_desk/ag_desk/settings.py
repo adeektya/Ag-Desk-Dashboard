@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     "inventory_management",
     "vehicle_management",
     "calendar_events",
+    "farm",
     'rest_framework.authtoken',
     # Third-party apps
     'django.contrib.sites',
