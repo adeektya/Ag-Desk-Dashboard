@@ -1,4 +1,24 @@
+import axios from "axios";
+
 export const API_URL = 'http://127.0.0.1:8000/employee/employees/';
+export const USER_API_URL = 'http://127.0.0.1:8000/user/generate-code/';
+
+export const generateInvitationCode = async () => {
+  const token = localStorage.getItem('token'); // Get the auth token from storage
+  try {
+    const response = await axios.post(
+      `${USER_API_URL}`,
+      {},
+      {
+        headers: { Authorization: `Token ${token}` },
+      }
+    );
+    return response.data.code; // Assuming the response will include the code
+  } catch (error) {
+    console.error('Error generating invitation code:', error);
+    throw error;
+  }
+};
 
 export const fetchEmployees = async () => {
   try {
@@ -53,18 +73,18 @@ export const createEmployee = async (data) => {
 };
 
 export const updateEmployee = async (employeeId, data) => {
-    try {
-      const formData = new FormData();
-      Object.keys(data).forEach((key) => {
-        if (data[key] !== '') {
-          if (key === 'photo' && data[key] instanceof File) {
-            formData.append(key, data[key]);
-          } else if (key !== 'photo') {
-            const fieldName = key === 'startDate' ? 'start_date' : key;
-            formData.append(fieldName, data[key]);
-          }
+  try {
+    const formData = new FormData();
+    Object.keys(data).forEach((key) => {
+      if (data[key] !== '') {
+        if (key === 'photo' && data[key] instanceof File) {
+          formData.append(key, data[key]);
+        } else if (key !== 'photo') {
+          const fieldName = key === 'startDate' ? 'start_date' : key;
+          formData.append(fieldName, data[key]);
         }
-      });
+      }
+    });
 
     const response = await fetch(`${API_URL}${employeeId}/`, {
       method: 'PUT',

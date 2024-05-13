@@ -26,6 +26,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
 import User17 from '../../images/user/user-17.png';
+import { GenerateCodeSection } from "./GenerateCode"
 import {
   fetchEmployees,
   createEmployee,
@@ -467,6 +468,7 @@ const EmployeePage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      <GenerateCodeSection />
       <Snackbar
         open={openSnackbar}
         autoHideDuration={6000}

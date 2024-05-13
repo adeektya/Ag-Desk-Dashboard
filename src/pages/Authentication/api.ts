@@ -3,6 +3,11 @@ import axios from 'axios';
 const baseURL = 'http://127.0.0.1:8000/';
 
 export const registerUser = async (userData: any) => {
+  // Basic client-side validation (Example: Check for empty fields)
+  if (!userData.username || !userData.email || !userData.password || !userData.invitation_code) {
+    throw new Error("Please fill in all fields including the invitation code.");
+  }
+
   try {
     const response = await axios.post(`${baseURL}user/register/`, {
       username: userData.username,
@@ -15,11 +20,19 @@ export const registerUser = async (userData: any) => {
 
     return response.data;
   } catch (error) {
-    console.error(
-      'Registration error:',
-      error.response ? error.response.data : error.message
-    );
-    throw error;
+    if (error.response) {
+      // Server responded with a status code outside the 2xx range
+      console.error('Registration error:', error.response.data);
+      throw new Error(error.response.data.detail || "Registration failed. Please try again.");
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('Registration error: No response received');
+      throw new Error("No response from the server. Please check your network connection.");
+    } else {
+      // Something happened in setting up the request and triggered an Error
+      console.error('Registration error:', error.message);
+      throw new Error("An error occurred during registration. Please try again.");
+    }
   }
 };
 
@@ -33,20 +46,5 @@ export const loginUser = async (userData: any) => {
       error.response ? error.response.data : error.message
     );
     throw error; // Re-throw the error to handle it in the calling function
-  }
-};
-export const registerEmployee = async (employeeData: any) => {
-  try {
-    const response = await axios.post(
-      `${baseURL}user/employee-register/`,
-      employeeData
-    );
-    return response.data;
-  } catch (error) {
-    console.error(
-      'Employee registration error:',
-      error.response ? error.response.data : error.message
-    );
-    throw error;
   }
 };
