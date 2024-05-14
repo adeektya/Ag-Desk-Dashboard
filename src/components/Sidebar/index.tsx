@@ -7,6 +7,8 @@ import PeopleIcon from '@mui/icons-material/People';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CarRepairIcon from '@mui/icons-material/CarRepair';
+import GrassIcon from '@mui/icons-material/Grass';
+
 import './sidebar.css';
 import axios from 'axios';
 import { useFarm } from '../../contexts/FarmContext';
@@ -22,6 +24,8 @@ const icons = {
   Inventory: <Inventory2Icon />,
   Employees: <PeopleIcon />,
   Vehicles: <CarRepairIcon />,
+  Section:<GrassIcon/>
+
 };
 
 interface SidebarProps {
@@ -210,7 +214,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   return (
     <aside
       ref={sidebar}
-      className={`absolute left-0 top-0 z-9999 flex h-screen w-72.5 flex-col overflow-y-hidden bg-[#2a3e52] duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
+      className={`absolute left-0 top-0 z-999 flex h-screen w-72.5 flex-col overflow-y-hidden bg-[#2a3e52] duration-300 ease-linear dark:bg-boxdark lg:static lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
@@ -303,7 +307,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 </NavLink>
               </React.Fragment>
               {/* <!-- Menu Item Task --> */}
-
+              {/* <!-- Menu Item Section --> */}
+              <NavLink
+                to="/SectionPage" // Adjust this to the actual route
+                className={getNavLinkClass('/section')}
+              >
+                {icons.Section}
+                <span className="link-text">Section</span>
+              </NavLink>
               {/* <!-- Menu Item Inventory --> */}
               <NavLink
                 to="/InventoryPage" // Adjust this to the actual route
@@ -312,6 +323,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 {icons.Inventory}
                 <span className="link-text">Inventory</span>
               </NavLink>
+              {/* <!-- Menu Item Section --> */}
               {/* <!-- Menu Item Inventory --> */}
               <NavLink
                 to="/EmployeePage" // Adjust this to the actual route
