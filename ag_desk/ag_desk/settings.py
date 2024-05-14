@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     "farm_management",
     "rest_framework",
     "employee_management",
+    "section_management",
     "inventory_management",
     "vehicle_management",
     "calendar_events",
