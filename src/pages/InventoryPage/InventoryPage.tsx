@@ -68,7 +68,11 @@ const InventoryPage = () => {
   }, [activeFarm]); // Refetch whenever the activeFarm changes
 
   const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    setEditMode(false); 
+  };
+  
   const handleChange = (event) => {
     const { name, value } = event.target;
     // Check if the field is a date field and if the value is empty
