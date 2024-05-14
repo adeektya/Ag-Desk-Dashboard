@@ -269,15 +269,16 @@ const EmployeePage = () => {
 
   const columns = [
     {
-      field: 'image',
-      headerName: 'Photo',
-      renderCell: (params) => (
-        <Avatar
-          src={params.value ? `${API_URL}${params.value}` : ''}
-          alt={params.row.name}
-        />
-      ),
+    field: 'photo',
+    headerName: 'Photo',
+    renderCell: (params) => {
+      // Log the value of params.value
+      console.log('Photo URL:', params.value);
+      
+      // Return the Avatar component with the correct URL
+      return <Avatar src={params.value ? `http://127.0.0.1:8000${params.value}/` : ''} alt={params.row.name} />;
     },
+  },
     {
       field: 'name',
       headerName: 'Employee Name',
