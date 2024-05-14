@@ -20,9 +20,9 @@ export const generateInvitationCode = async () => {
   }
 };
 
-export const fetchEmployees = async () => {
+export const fetchEmployees = async (farmId) => {
   try {
-    const response = await fetch(API_URL);
+    const response = await fetch(`${API_URL}?farm=${farmId}`);
     if (!response.ok) throw new Error('Network response was not ok.');
     console.log('Response:', response);
     return await response.json();

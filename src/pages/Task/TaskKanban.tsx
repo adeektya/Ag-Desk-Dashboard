@@ -119,15 +119,16 @@ const TaskKanban: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchEmployees()
-      .then((data) => {
-        setEmployees(data);
-      })
-      .catch((error) => {
-        console.error('Error fetching employees:', error);
-      });
-  }, []);
-
+    if (activeFarm) {
+      fetchEmployees(activeFarm.id)
+        .then((data) => {
+          setEmployees(data);
+        })
+        .catch((error) => {
+          console.error('Error fetching employees:', error);
+        });
+    }
+  }, [activeFarm]);
   useEffect(() => {
     fetchTasks();
   }, []);

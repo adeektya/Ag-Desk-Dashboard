@@ -10,7 +10,12 @@ from .serializers import EmployeeSerializer
 @parser_classes((MultiPartParser, FormParser, JSONParser))
 def employee_list(request):
     if request.method == "GET":
-        employees = Employee.objects.all()
+        farm_id = request.query_params.get('farm', None)
+        if farm_id:
+            employees = Employee.objects.filter(farm=farm_id)
+        else:
+            employees = Employee.objects.all()
+        
         serializer = EmployeeSerializer(employees, many=True)
         return Response(serializer.data)
     elif request.method == "POST":
