@@ -38,7 +38,6 @@ const SectionPage = () => {
     size_acers: '',
     section_type: '',
     add_info: '',
-    farm: activeFarm.id,
 
   });
   const theme = useTheme();
@@ -49,6 +48,10 @@ const SectionPage = () => {
   }, [activeFarm.id]);
 
   const fetchSection = async () => {
+    if (!activeFarm) {
+      console.log('No active farm selected.');
+      return;
+    }
     try {
       const response = await axios.get(`http://127.0.0.1:8000/section/?farm_id=${activeFarm.id}`);
       setRows(response.data);
@@ -68,8 +71,6 @@ const SectionPage = () => {
     size_acers: '',
     section_type: '',
     add_info: '',
-    farm: activeFarm.id,
-
   });
     
   };
@@ -87,13 +88,17 @@ const SectionPage = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const updatedFormData = {
+      ...formData,
+      farm: activeFarm.id,
     
+    };
     try {
 
       // Submit the data
       const response = await axios.post(
         'http://127.0.0.1:8000/section/',
-        formData
+        updatedFormData
       );
       setRows([...rows, response.data]);
       handleClose();
@@ -147,12 +152,23 @@ const SectionPage = () => {
 
   const handleUpdate = async (event, id) => {
     event.preventDefault();
+
+    const updatedFormData = {
+      ...formData,
+      farm: activeFarm.id,
+    
+    };
     console.log('Updating ID:', id); // Ensure the ID is being passed correctly
     if (id) {
       try {
         const response = await axios.put(
           `http://127.0.0.1:8000/section/${id}/`,
-          formData
+          updatedFormData,
+          {
+            headers: {
+              'Content-Type': 'application/json' // Ensure the correct content type; adjust if necessary
+            }
+          }
         );
         const updatedRows = rows.map((row) =>
           row.id === id ? response.data : row
@@ -160,12 +176,33 @@ const SectionPage = () => {
         setRows(updatedRows);
         handleClose();
       } catch (error) {
-        console.error('Failed to update inventory item', error);
+        console.error('Failed to update section', error);
+        // More detailed error information
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.error('Error response data:', error.response.data);
+          console.error('Error status code:', error.response.status);
+          console.error('Error headers:', error.response.headers);
+          alert(`Failed to update. Status: ${error.response.status}. ${JSON.stringify(error.response.data)}`);
+        } else if (error.request) {
+          // The request was made but no response was received
+          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+          // http.ClientRequest in node.js
+          console.error('No response received:', error.request);
+          alert('No response received from the server. Please check network or server status.');
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error('Error', error.message);
+          alert('Error: ' + error.message);
+        }
       }
     } else {
       console.error('Invalid ID');
+      alert('Invalid ID provided for update.');
     }
   };
+  
 
   const handleDelete = async (id) => {
     try {
