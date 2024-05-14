@@ -1,0 +1,59 @@
+/* General styling for the page */
+.page-container {
+    padding: 2rem;
+    background: #f5f5f5; /* Light grey background for slight contrast */
+  }
+  
+  /* Style for the add button */
+  .add-button {
+    color: white;
+    border-radius: 20px; /* Rounded borders */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important; /* Subtle shadow */
+    margin-bottom: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important; /* Smooth transition for hover */
+  }
+  
+  .add-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Style for the data grid */
+  .data-grid-container {
+    height: 400px;
+    width: 100%;
+    background: white;
+    border-radius: 10px; /* Round edges for the data grid */
+    overflow: hidden; /* Ensures the child elements don't overflow */
+  }
+  
+  /* Styles for the dialog */
+  
+  .dialog-actions button {
+    border-radius: 20px; /* Rounded buttons */
+    padding: 0.5rem 1.5rem; /* Padding for larger click area */
+  }
+  
+  /* Icon styling */
+  .icon-button {
+    color: #1976d2; /* Color the icons to match your theme */
+    margin: 0 5px; /* Space out the icons */
+  }
+  
+  .icon-button:hover {
+    color: #0d47a1; /* Darker shade on hover */
+  }
+  
+  /* Form control styling */
+  .form-control {
+    margin: 10px 0;
+  }
+  
+  /* Input field styling */
+  .input-field {
+    background: #e8f0fe; /* Light background for input fields */
+    border-radius: 10px; /* Rounded borders for input fields */
+  }
+  
+  /* You can add more styles as needed */
+  
