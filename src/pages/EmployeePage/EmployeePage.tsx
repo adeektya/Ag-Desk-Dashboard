@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import { useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
+import { useFarm } from '../../contexts/FarmContext';
 import {
   Button,
   Dialog,
@@ -25,7 +26,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import User17 from '../../images/user/user-17.png';
+
 import { GenerateCodeSection } from "./GenerateCode"
 import {
   fetchEmployees,
@@ -40,9 +41,11 @@ import axios from 'axios';
 import ApprovalTable from './ApprovedList';
 
 const EmployeePage = () => {
+  const { activeFarm } = useFarm();
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [employees, setEmployees] = useState([]);
+  const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState(null);
@@ -77,6 +80,7 @@ const EmployeePage = () => {
         const formData = {
           ...values,
           startDate: new Date(values.startDate).toISOString().split('T')[0],
+          farm: activeFarm.id, // Include activeFarm ID in the employee data
         };
 
         if (editMode) {
@@ -85,7 +89,7 @@ const EmployeePage = () => {
             formData
           );
           const updatedEmployees = employees.map((emp) =>
-            emp.id === currentEmployee.id ? updatedEmployee : emp
+            emp.employee_id === updatedEmployee.employee_id ? updatedEmployee : emp
           );
           setEmployees(updatedEmployees);
         } else {
@@ -104,14 +108,19 @@ const EmployeePage = () => {
   });
 
   useEffect(() => {
-    fetchEmployees()
-      .then(setEmployees)
-      .catch((e) => {
+    const fetchEmployeesData = async () => {
+      try {
+        const data = await fetchEmployees(activeFarm.id); // Pass activeFarm.id here
+        setEmployees(data);
+      } catch (error) {
         setError('Failed to fetch employees.');
         setOpenSnackbar(true);
-        console.error(e);
-      });
-  }, []);
+        console.error(error);
+      }
+    };
+  
+    fetchEmployeesData();
+  }, [activeFarm.id]);
 
   const handleClose = () => {
     setOpen(false);
@@ -120,6 +129,7 @@ const EmployeePage = () => {
     setCurrentEmployee(null);
     setError('');
     setOpenSnackbar(false);
+    setSelectedRows([]);
   };
 
   const handleEditOpen = (employee) => {
@@ -144,7 +154,68 @@ const EmployeePage = () => {
       console.error(e);
     }
   };
-
+  const [selectedRows, setSelectedRows] = useState([]);
+  const handleDeleteSelected = async () => {
+    try {
+      if (selectedRows.length === 0) {
+        console.log('No items selected for deletion.');
+        return; // Early return if no items are selected
+      }
+  
+      const deletePromises = selectedRows.map((id) =>
+        deleteEmployee(id)
+          .then(() => ({ success: true, id }))
+          .catch((error) => ({
+            success: false,
+            id,
+            error: error.message || 'Failed to delete item',
+          }))
+      );
+  
+      const optionPromises = selectedRows.map((id) =>
+        axios
+          .options(`http://127.0.0.1:8000/employee/${id}/`)
+          .then(() => ({ success: true, id }))
+          .catch((error) => ({
+            success: false,
+            id,
+            error: error.message || 'Failed to send OPTIONS request',
+          }))
+      );
+  
+      // Send OPTIONS requests first
+      await Promise.all(optionPromises);
+  
+      // Then send DELETE requests
+      const deleteResults = await Promise.all(deletePromises);
+      const failedDeletes = deleteResults.filter((result) => !result.success);
+      if (failedDeletes.length > 0) {
+        console.error('Some items failed to delete:', failedDeletes);
+        alert('Failed to delete some items.');
+      }
+  
+      // Update the rows removing only the successfully deleted ones
+      const deletedIds = deleteResults
+        .filter((result) => result.success)
+        .map((result) => result.id);
+      setRows((currentRows) =>
+        currentRows.filter((row) => !deletedIds.includes(row.id))
+      );
+  
+      // Update the employees state to remove the deleted employees
+      setEmployees((currentEmployees) =>
+        currentEmployees.filter((emp) => !deletedIds.includes(emp.employee_id))
+      );
+  
+      setSelectedRows([]);
+  
+      if (failedDeletes.length === 0) {
+        alert('All selected items were successfully deleted.');
+      }
+    } catch (error) {
+      console.error('Error processing deletions:', error);
+    }
+  };
   useEffect(() => {
     const fetchUnapprovedUsers = async () => {
       const token = localStorage.getItem('token'); // Retrieve the token from localStorage
@@ -199,15 +270,16 @@ const EmployeePage = () => {
 
   const columns = [
     {
-      field: 'image',
-      headerName: 'Photo',
-      renderCell: (params) => (
-        <Avatar
-          src={params.value ? `${API_URL}${params.value}` : ''}
-          alt={params.row.name}
-        />
-      ),
+    field: 'photo',
+    headerName: 'Photo',
+    renderCell: (params) => {
+      // Log the value of params.value
+      console.log('Photo URL:', params.value);
+      
+      // Return the Avatar component with the correct URL
+      return <Avatar src={params.value ? `http://127.0.0.1:8000${params.value}/` : ''} alt={params.row.name} />;
     },
+  },
     {
       field: 'name',
       headerName: 'Employee Name',
@@ -284,24 +356,40 @@ const EmployeePage = () => {
         variant="contained"
         startIcon={<AddIcon />}
         onClick={() => setOpen(true)}
-        sx={{ mb: 2 }}
-        className="mui-button custom-button"
+        sx={{ mb: 2 , mr: 1}}
+        className="custom-button"
       >
         Add Employee
+      </Button>
+      <Button
+        variant="contained"
+        color="error"
+        onClick={handleDeleteSelected}
+        startIcon={<DeleteIcon />}
+        disabled={selectedRows.length === 0}// Disable button if no rows are selected
+        sx={{ mb: 2 }}
+        className="custom-buttondeletebtn" 
+      >
+        Delete Selected
       </Button>
       <div
         style={{ height: 400, width: '100%' }}
         className="data-grid-container"
       >
-        <DataGrid
+       <DataGrid
           rows={employees}
           columns={columns}
           autoPageSize
           pagination
-          filterMode="server"
-          sortingMode="server"
+          filterMode='server'
+          sortingMode='server'
           checkboxSelection
+          onRowSelectionModelChange={(newSelectionModel) => {
+            setSelectedRows(newSelectionModel);
+          }}
+          rowSelectionModel={selectedRows}
           getRowId={(row) => row.employee_id}
+          
         />
       </div>
       <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>

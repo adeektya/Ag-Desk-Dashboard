@@ -2,15 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { fetchEmployees } from '../../pages/EmployeePage/api'; // Assuming the API functions are in a separate file
 import './employeetable.css';
-
+import { useFarm } from '../../contexts/FarmContext';
+import {Avatar} from '@mui/material';
+export const BASE_API_URL = 'http://127.0.0.1:8000';
 const EmployeeTable: React.FC = () => {
+  const { activeFarm } = useFarm();
   const [employeeData, setEmployeeData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await fetchEmployees();
-       
+        const data = await fetchEmployees(activeFarm.id);
+        console.log('Fetched employee data:', data); 
         setEmployeeData(data);
       } catch (error) {
         console.error('Error fetching employee data:', error);
@@ -18,7 +21,7 @@ const EmployeeTable: React.FC = () => {
     };
 
     fetchData();
-  }, []); // Empty dependency array to run effect only once
+  }, [activeFarm.id]); // Include activeFarm.id in the dependency array
 
   return (
     <TableContainer component={Paper} className="col-span-12">
@@ -41,8 +44,9 @@ const EmployeeTable: React.FC = () => {
         <TableBody>
           {employeeData.map((employee: any) => ( // Adjust the type of 'employee' according to your data structure
             <TableRow key={employee.id} className="table-row">
+              
               <TableCell>
-                <img src={employee.image} alt={employee.name} className="employee-image" />
+                <Avatar src={`http://127.0.0.1:8000${employee.photo}`}alt={employee.name} className="employee-image" />
               </TableCell>
               <TableCell>{employee.name}</TableCell>
               <TableCell>{employee.role}</TableCell>

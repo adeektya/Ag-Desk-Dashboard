@@ -10,28 +10,30 @@ import {
   Chip,
 } from '@mui/material';
 import './taskcard.css';
+import { useFarm } from '../../contexts/FarmContext';
 import { TaskCardProps } from '../../types/TaskCardProps';
 
 const TaskCardDashboard: React.FC = () => {
+  const { activeFarm } = useFarm();
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
     // Fetch tasks from the API when the component mounts
     axios
-      .get('http://127.0.0.1:8000/api/tasks/')
+      .get(`http://127.0.0.1:8000/api/tasks/?farm_id=${activeFarm.id}`)
       .then((response) => {
-        // Update the tasks state with the fetched data
-        setTasks(response.data);
+        const incompleteTasks = response.data.filter(task => task.status !== 'completed');
+        setTasks(incompleteTasks);
       })
       .catch((error) => {
         console.error('Error fetching tasks:', error);
       });
-  }, []);
+  }, [activeFarm.id]); // Add activeFarm.id to the dependency array
+  
 
   const toggleTaskCompletion = (taskId, completed) => {
-    // Send an HTTP PATCH request to update the task's completion status
     axios
-      .patch(`http://127.0.0.1:8000/api/tasks/${taskId}/`, { completed })
+      .patch(`http://127.0.0.1:8000/api/tasks/${taskId}/`, { status: 'completed' })
       .then((response) => {
         // Update the tasks state with the updated task data
         const updatedTask = response.data;
@@ -39,11 +41,17 @@ const TaskCardDashboard: React.FC = () => {
           task.id === taskId ? updatedTask : task
         );
         setTasks(updatedTasks);
+  
+        // Remove completed task from the list
+        if (completed) {
+          setTasks(updatedTasks.filter((task) => task.id !== taskId));
+        }
       })
       .catch((error) => {
         console.error('Error updating task completion status:', error);
       });
   };
+  
 
   return (
     <Card className="farm-tasks-card">
@@ -67,7 +75,10 @@ const TaskCardDashboard: React.FC = () => {
                   task.severity
                 }`}
               />
-
+              <ListItemText
+              primary={task.status} // Add the status field here
+              className='task-details'
+            />
               <ListItemText
                 primary={task.assigned_employee_name}
                 secondary={task.due_date}
