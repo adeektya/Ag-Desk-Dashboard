@@ -12,9 +12,11 @@ const EmployeeTable: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        if (activeFarm) {
         const data = await fetchEmployees(activeFarm.id);
         console.log('Fetched employee data:', data); 
         setEmployeeData(data);
+        }
       } catch (error) {
         console.error('Error fetching employee data:', error);
       }
