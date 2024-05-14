@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Calendar from './pages/Calendar/Calendar';
 import TaskKanban from './pages/Task/TaskKanban';
 import InventoryPage from './pages/InventoryPage/InventoryPage';
+import SectionPage from './pages/SectionPage/SectionPage';
 
 import Loader from './common/Loader';
 import PageTitle from './components/PageTitle';
@@ -34,7 +35,17 @@ function App() {
   return (
     <Routes>
       {/* Redirect to sign-in if not authenticated */}
+     
       <Route index element={isAuthenticated ? <Dashboard /> : <Navigate replace to="/signin" />} />
+      <Route
+          path="/SectionPage"
+          element={
+            <>
+              <PageTitle title="Section Management | Ag-Desk" />
+              <SectionPage />
+            </>
+          }
+        />
       <Route path="/calendar" element={isAuthenticated ? <Calendar /> : <Navigate replace to="/signin" />} />
       <Route path="/tasks/task-kanban" element={isAuthenticated ? <TaskKanban /> : <Navigate replace to="/signin" />} />
       <Route path="/InventoryPage" element={isAuthenticated ? <InventoryPage /> : <Navigate replace to="/signin" />} />
