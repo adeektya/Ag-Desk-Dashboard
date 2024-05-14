@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const API_URL = 'http://127.0.0.1:8000/employee/employees/';
+export const API_URL = 'http://127.0.0.1:8000/employee/';
 export const USER_API_URL = 'http://127.0.0.1:8000/user/generate-code/';
 
 export const generateInvitationCode = async () => {
