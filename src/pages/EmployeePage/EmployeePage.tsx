@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import { useState } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
+import { useFarm } from '../../contexts/FarmContext';
 import {
   Button,
   Dialog,
@@ -25,7 +26,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import User17 from '../../images/user/user-17.png';
+
 import { GenerateCodeSection } from "./GenerateCode"
 import {
   fetchEmployees,
@@ -40,6 +41,7 @@ import axios from 'axios';
 import ApprovalTable from './ApprovedList';
 
 const EmployeePage = () => {
+  const { activeFarm } = useFarm();
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [employees, setEmployees] = useState([]);
@@ -77,6 +79,7 @@ const EmployeePage = () => {
         const formData = {
           ...values,
           startDate: new Date(values.startDate).toISOString().split('T')[0],
+          farm: activeFarm.id, // Include activeFarm ID in the employee data
         };
 
         if (editMode) {
