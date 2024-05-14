@@ -129,6 +129,7 @@ const EmployeePage = () => {
     setCurrentEmployee(null);
     setError('');
     setOpenSnackbar(false);
+    setSelectedRows([]);
   };
 
   const handleEditOpen = (employee) => {
