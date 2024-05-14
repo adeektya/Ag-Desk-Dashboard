@@ -19,6 +19,7 @@ const TaskCardDashboard: React.FC = () => {
 
   useEffect(() => {
     // Fetch tasks from the API when the component mounts
+    if (activeFarm) {
     axios
       .get(`http://127.0.0.1:8000/api/tasks/?farm_id=${activeFarm.id}`)
       .then((response) => {
@@ -28,7 +29,8 @@ const TaskCardDashboard: React.FC = () => {
       .catch((error) => {
         console.error('Error fetching tasks:', error);
       });
-  }, [activeFarm.id]); // Add activeFarm.id to the dependency array
+    }
+  }, [activeFarm]); // Add activeFarm.id to the dependency array
   
 
   const toggleTaskCompletion = (taskId, completed) => {
