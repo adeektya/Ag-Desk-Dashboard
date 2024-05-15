@@ -4,6 +4,7 @@ import axios from 'axios';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import { useFarm } from '../../contexts/FarmContext';
 import { WiDaySunny } from 'weather-icons-react';
 import {
   TextField,
@@ -28,9 +29,11 @@ const inventoryItems = [
 const lowInventoryThreshold = 10;
 
 const DataStatsThree: React.FC = () => {
+  const { activeFarm } = useFarm();
   const [todos, setTodos] = useState([]);
   const [newTodo, setNewTodo] = useState('');
   const [user, setUser] = useState(null);
+  const [notes, setNotes] = useState([]); // State to store notes data
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -51,18 +54,59 @@ const DataStatsThree: React.FC = () => {
 
     fetchUserData();
   }, []);
-
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/note_list/', {
+          params: {
+            farm_id: activeFarm.id
+          }
+        });
+        setNotes(response.data);
+        console.log('response:', response.data);
+      } catch (error) {
+        console.error('Error fetching notes:', error);
+      }
+    };
+  
+    fetchNotes();
+  }, [activeFarm]); // Make sure to include activeFarm in the dependency array
+  
   const handleAddTodo = () => {
     if (newTodo.trim() !== '') {
+      // Post the new note to the backend
+      postNote({ text: newTodo, completed: false });
+      // Add the new todo locally
       setTodos([...todos, { text: newTodo, completed: false }]);
+      // Clear the input field after adding the todo
       setNewTodo('');
     }
   };
+  const postNote = async (noteData) => {
+    try {
+      noteData.farm = activeFarm.id;
+      const response = await axios.post('http://127.0.0.1:8000/api/note_list/', noteData);
+      console.log('Note posted successfully:', response.data);
+      // Update the notes state to include the newly added note
+      setNotes([...notes, response.data]);
+      // Clear the input field after adding the note
+      setNewTodo('');
+    } catch (error) {
+      console.error('Error posting note:', error);
+    }
+  };
 
-  const handleToggleComplete = (index) => {
-    const updatedTodos = [...todos];
-    updatedTodos[index].completed = !updatedTodos[index].completed;
-    setTodos(updatedTodos);
+  const handleToggleComplete = async (noteId) => {
+    try {
+      // Delete the note from the backend
+      await axios.delete(`http://127.0.0.1:8000/api/note_detail/${noteId}/`);
+  
+      // Update the notes state to remove the deleted note
+      const updatedNotes = notes.filter((note) => note.id !== noteId);
+      setNotes(updatedNotes);
+    } catch (error) {
+      console.error('Error deleting note:', error);
+    }
   };
 
   const handleRemoveTodo = (index) => {
@@ -153,11 +197,11 @@ const DataStatsThree: React.FC = () => {
               gutterBottom
               className="todo-card-header" // Added class for a bigger heading
             >
-              Todos
+              Important Notes
             </Typography>
             <div>
               <TextField
-                label="Add new todo"
+                label="Add notes"
                 value={newTodo}
                 onChange={(e) => setNewTodo(e.target.value)}
                 variant="outlined"
@@ -175,38 +219,33 @@ const DataStatsThree: React.FC = () => {
               </IconButton>
             </div>
             <List>
-              {todos.map((todo, index) => (
-                <ListItem
-                  key={index}
-                  secondaryAction={
-                    <IconButton
-                      edge="end"
-                      aria-label="delete"
-                      onClick={() => handleRemoveTodo(index)}
-                      className="list-item"
-                    >
-                      {/* Removed Checkbox from secondary action */}
-                    </IconButton>
-                  }
-                >
-                  <ListItemIcon>
-                    <Checkbox
-                      edge="start"
-                      checked={todo.completed}
-                      tabIndex={-1}
-                      disableRipple
-                      onChange={() => handleToggleComplete(index)}
-                    />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={todo.text}
-                    style={
-                      todo.completed ? { textDecoration: 'line-through' } : {}
-                    }
-                  />
-                </ListItem>
-              ))}
-            </List>
+      {notes.map((note) => (
+        <ListItem key={note.id}>
+          <ListItemIcon>
+            <Checkbox
+              edge="start"
+              checked={note.completed}
+              tabIndex={-1}
+              disableRipple
+              // Add functionality to toggle completion if needed
+              onChange={() => handleToggleComplete(note.id)}
+            />
+          </ListItemIcon>
+          <ListItemText
+            primary={note.text}
+            style={note.completed ? { textDecoration: 'line-through' } : {}}
+          />
+          <IconButton
+            edge="end"
+            aria-label="delete"
+            onClick={() => handleRemoveTodo(note.id)} // Assuming `note.id` uniquely identifies each note
+            className="list-item"
+          >
+            {/* Add delete icon if needed */}
+          </IconButton>
+        </ListItem>
+      ))}
+    </List>
           </CardContent>
         </Card>
 
