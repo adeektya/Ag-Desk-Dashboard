@@ -53,10 +53,11 @@ const VehicleManagement: React.FC = () => {
 
   useEffect(() => {
     fetchVehicles();
-  }, [activeFarm.id]);
+  }, [activeFarm]);
 
   const fetchVehicles = async () => {
     try {
+      if (activeFarm) {
       const response = await axios.get(`http://127.0.0.1:8000/vehicle/?farm_id=${activeFarm.id}`);
       const data = response.data;
       const sortedData = data.sort((a: Vehicle, b: Vehicle) => a.id - b.id).map((vehicle: Vehicle) => ({
@@ -64,6 +65,7 @@ const VehicleManagement: React.FC = () => {
         image: vehicle.image ? `http://127.0.0.1:8000${vehicle.image}/` : null,
       }));
       setVehicles(sortedData);
+    }
     } catch (error) {
       console.error('Failed to fetch vehicles:', error);
     }

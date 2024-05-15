@@ -134,7 +134,9 @@ const TaskKanban: React.FC = () => {
   }, []);
 
   const fetchTasks = () => {
+    if (activeFarm) {
     axios
+    
       .get(`http://127.0.0.1:8000/api/tasks/?farm_id=${activeFarm.id}`)
       .then((response) => {
         const fetchedTasks = response.data;
@@ -152,6 +154,7 @@ const TaskKanban: React.FC = () => {
       })
       .catch((error) => console.error('Error fetching tasks:', error));
   };
+}
 
   const validateForm = (): boolean => {
     let errors: FormErrors = { type: '', title: '', severity: '' };

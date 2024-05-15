@@ -110,8 +110,9 @@ const EmployeePage = () => {
   useEffect(() => {
     const fetchEmployeesData = async () => {
       try {
+        if (activeFarm) {
         const data = await fetchEmployees(activeFarm.id); // Pass activeFarm.id here
-        setEmployees(data);
+        setEmployees(data);}
       } catch (error) {
         setError('Failed to fetch employees.');
         setOpenSnackbar(true);
@@ -120,7 +121,7 @@ const EmployeePage = () => {
     };
   
     fetchEmployeesData();
-  }, [activeFarm.id]);
+  }, [activeFarm]);
 
   const handleClose = () => {
     setOpen(false);

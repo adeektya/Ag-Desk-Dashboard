@@ -23,7 +23,7 @@ const EmployeeTable: React.FC = () => {
     };
 
     fetchData();
-  }, [activeFarm.id]); // Include activeFarm.id in the dependency array
+  }, [activeFarm]); // Include activeFarm.id in the dependency array
 
   return (
     <TableContainer component={Paper} className="col-span-12">

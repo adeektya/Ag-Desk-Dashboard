@@ -45,7 +45,7 @@ const SectionPage = () => {
 
   useEffect(() => {
     fetchSection();
-  }, [activeFarm.id]);
+  }, [activeFarm]);
 
   const fetchSection = async () => {
     if (!activeFarm) {
