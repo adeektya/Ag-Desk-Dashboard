@@ -46,6 +46,7 @@ const DataStatsThree: React.FC = () => {
             },
           });
           setUser(response.data);
+          console.log("userdata response"+response.data);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -57,6 +58,7 @@ const DataStatsThree: React.FC = () => {
   useEffect(() => {
     const fetchNotes = async () => {
       try {
+        if (activeFarm) {
         const response = await axios.get('http://127.0.0.1:8000/api/note_list/', {
           params: {
             farm_id: activeFarm.id
@@ -64,6 +66,7 @@ const DataStatsThree: React.FC = () => {
         });
         setNotes(response.data);
         console.log('response:', response.data);
+      }
       } catch (error) {
         console.error('Error fetching notes:', error);
       }
