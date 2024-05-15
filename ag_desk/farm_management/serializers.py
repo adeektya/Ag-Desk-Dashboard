@@ -1,9 +1,12 @@
 from rest_framework import serializers
-from .models import Task, Subtask
+from .models import Task, Subtask,Note
 from employee_management.models import Employee
 from farm.models import Farm
 
-
+class NoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Note
+        fields = '__all__'
 class SubtaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subtask
@@ -88,3 +91,4 @@ class TaskSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+

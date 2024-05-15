@@ -46,4 +46,15 @@ class Subtask(models.Model):
 
     def __str__(self):
         return f"{self.description} - {'Completed' if self.completed else 'Pending'}"
+    
+class Note(models.Model):
+    id = models.AutoField(primary_key=True)
+    text = models.TextField()
+    completed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    farm = models.ForeignKey(Farm, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.text
 
