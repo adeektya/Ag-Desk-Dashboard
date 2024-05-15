@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { DataGrid, GridColDef, GridCellParams } from '@mui/x-data-grid';
-
 import {
   Button,
   Dialog,
@@ -22,7 +21,7 @@ import {
 } from '@mui/icons-material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import "./vehiclepage.css";
+import './vehiclepage.css';
 import DefaultLayout from '../../layout/DefaultLayout';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import axios from 'axios';
@@ -52,20 +51,24 @@ const VehicleManagement: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
   useEffect(() => {
-    fetchVehicles();
+    if (activeFarm) {
+      fetchVehicles();
+    }
   }, [activeFarm]);
 
   const fetchVehicles = async () => {
     try {
       if (activeFarm) {
-      const response = await axios.get(`http://127.0.0.1:8000/vehicle/?farm_id=${activeFarm.id}`);
-      const data = response.data;
-      const sortedData = data.sort((a: Vehicle, b: Vehicle) => a.id - b.id).map((vehicle: Vehicle) => ({
-        ...vehicle,
-        image: vehicle.image ? `http://127.0.0.1:8000${vehicle.image}/` : null,
-      }));
-      setVehicles(sortedData);
-    }
+        const response = await axios.get(`http://127.0.0.1:8000/vehicle/?farm_id=${activeFarm.id}`);
+        const data = response.data;
+        const sortedData = data
+          .sort((a: Vehicle, b: Vehicle) => a.id - b.id)
+          .map((vehicle: Vehicle) => ({
+            ...vehicle,
+            image: vehicle.image ? `http://127.0.0.1:8000${vehicle.image}/` : null,
+          }));
+        setVehicles(sortedData);
+      }
     } catch (error) {
       console.error('Failed to fetch vehicles:', error);
     }
@@ -115,16 +118,14 @@ const VehicleManagement: React.FC = () => {
             case 'Serviced':
               return 'green';
             default:
-              return 'gray'; // Default color if status is unknown
+              return 'gray';
           }
         };
 
         const color = getStatusColor(params.value);
         return (
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span style={{ color: color, fontWeight: 'bold' }}>
-              {params.value}
-            </span>
+            <span style={{ color: color, fontWeight: 'bold' }}>{params.value}</span>
             {params.value === 'Needs Repair' && (
               <IconButton onClick={() => handleOpenRepairDialog(params.row as Vehicle)}>
                 <SearchIcon />
@@ -132,7 +133,7 @@ const VehicleManagement: React.FC = () => {
             )}
           </div>
         );
-      }
+      },
     },
     { field: 'next_service_date', headerName: 'Next Service Date', width: 150 },
     {
@@ -186,7 +187,7 @@ const VehicleManagement: React.FC = () => {
       image: null,
       image_repair: null,
       repair_description: '',
-      farm: activeFarm.id,
+      farm: activeFarm ? activeFarm.id : '',
     },
     validationSchema,
     onSubmit: (values) => {
@@ -204,6 +205,8 @@ const VehicleManagement: React.FC = () => {
   };
 
   const handleSubmit = async (values) => {
+    if (!activeFarm) return;
+
     const formData = new FormData();
   
     // Append form values to formData
@@ -285,6 +288,8 @@ const VehicleManagement: React.FC = () => {
   };
 
   const handleUpdate = async (values) => {
+    if (!activeFarm) return;
+
     const formData = new FormData();
     Object.keys(values).forEach(key => {
       if ((key === 'image' || key === 'image_repair') && values[key]) {
@@ -552,5 +557,6 @@ const VehicleManagement: React.FC = () => {
 };
 
 export default VehicleManagement;
+
 
 
