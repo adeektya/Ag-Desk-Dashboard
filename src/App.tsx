@@ -6,6 +6,7 @@ import Calendar from './pages/Calendar/Calendar';
 import TaskKanban from './pages/Task/TaskKanban';
 import InventoryPage from './pages/InventoryPage/InventoryPage';
 import SectionPage from './pages/SectionPage/SectionPage';
+import ProfilePage from './pages/ProfilePage/ProfilePage';
 
 import Loader from './common/Loader';
 import PageTitle from './components/PageTitle';
@@ -37,20 +38,14 @@ function App() {
       {/* Redirect to sign-in if not authenticated */}
      
       <Route index element={isAuthenticated ? <Dashboard /> : <Navigate replace to="/signin" />} />
-      <Route
-          path="/SectionPage"
-          element={
-            <>
-              <PageTitle title="Section Management | Ag-Desk" />
-              <SectionPage />
-            </>
-          }
-        />
+      <Route path="/SectionPage" element={isAuthenticated ? <SectionPage/> : <Navigate replace to="/signin" />} />
       <Route path="/calendar" element={isAuthenticated ? <Calendar /> : <Navigate replace to="/signin" />} />
       <Route path="/tasks/task-kanban" element={isAuthenticated ? <TaskKanban /> : <Navigate replace to="/signin" />} />
       <Route path="/InventoryPage" element={isAuthenticated ? <InventoryPage /> : <Navigate replace to="/signin" />} />
       <Route path="/EmployeePage" element={isAuthenticated ? <EmployeePage /> : <Navigate replace to="/signin" />} />
       <Route path="/VehiclePage" element={isAuthenticated ? <VehiclePage /> : <Navigate replace to="/signin" />} />
+      <Route path="/Profile" element={isAuthenticated ? <ProfilePage /> : <Navigate replace to="/signin" />} />
+    
       <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate replace to="/signin" />} />
 
       {/* Unprotected routes */}

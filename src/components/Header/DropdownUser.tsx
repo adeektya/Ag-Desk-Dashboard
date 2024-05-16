@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -7,12 +7,28 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
 import { Logout, Person, Message, Settings } from '@mui/icons-material';
-import UserOne from "../../images/user/user-01.png"
+import axios from 'axios';
 
 const DropdownUser = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [userPhoto, setUserPhoto] = useState<string>('');
   const open = Boolean(anchorEl);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Fetch profile data
+    axios.get('http://127.0.0.1:8000/profile/', {
+      headers: {
+        'Authorization': `Token ${localStorage.getItem('token')}`  // Adjust based on your authentication method
+      }
+    })
+    .then(response => {
+      setUserPhoto(response.data.photo);
+    })
+    .catch(error => {
+      console.error('There was an error fetching the profile!', error);
+    });
+  }, []);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -38,7 +54,7 @@ const DropdownUser = () => {
         aria-haspopup="true"
         aria-expanded={open ? 'true' : undefined}
       >
-        <Avatar sx={{ width: 32, height: 32 }} src={UserOne} alt="User" />
+        <Avatar sx={{ width: 32, height: 32 }} src={userPhoto} alt="User" />
       </IconButton>
       <Menu
         anchorEl={anchorEl}

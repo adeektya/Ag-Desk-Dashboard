@@ -1,12 +1,13 @@
-# user_profile/models.py
+from django.conf import settings
 from django.db import models
-from core.models import CustomUser
 
 class UserProfile(models.Model):
-    id = models.AutoField(primary_key=True)
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='profile')
-    phone_number = models.CharField(max_length=15, blank=True, null=True)
-    photo = models.ImageField(upload_to='profile_photos/', blank=True, null=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    photo = models.ImageField(upload_to='profile_photos/', null=True, blank=True)
+
+    def __str__(self):
+        return self.user.username
 
     @property
     def username(self):
@@ -27,6 +28,3 @@ class UserProfile(models.Model):
     @property
     def last_name(self):
         return self.user.last_name
-
-    def __str__(self):
-        return self.user.username
