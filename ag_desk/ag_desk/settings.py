@@ -156,9 +156,9 @@ ACCOUNT_USERNAME_REQUIRED = False
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "hello2",
+        "NAME": "ag_desk_database",
         "USER": "postgres",
-        "PASSWORD": "pass",
+        "PASSWORD": "1104",
         "HOST": "localhost",
         "PORT": "5432",
     }
