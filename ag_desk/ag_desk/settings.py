@@ -84,6 +84,7 @@ INSTALLED_APPS = [
     "calendar_events",
     "farm",
     'rest_framework.authtoken',
+    "user_profile",
     # Third-party apps
     'django.contrib.sites',
     'allauth',
