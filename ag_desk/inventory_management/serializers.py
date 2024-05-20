@@ -19,7 +19,10 @@ class InventoryItemSerializer(serializers.ModelSerializer):
         instance.last_service_date = validated_data.get('last_service_date', instance.last_service_date)
         instance.service_details = validated_data.get('service_details', instance.service_details)
         instance.next_service_date = validated_data.get('next_service_date', instance.next_service_date)
-        
+        instance.image_repair = validated_data.get('image_repair', instance.image_repair)
+        instance.repair_description = validated_data.get('repair_description', instance.repair_description)
+        instance.section_name = validated_data.get('section_name', instance.section_name)
+
         # Save the updated instance
         instance.save()
         
