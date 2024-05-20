@@ -7,3 +7,4 @@ class FarmSerializer(serializers.ModelSerializer):
     class Meta:
         model = Farm
         fields = ['id', 'owner', 'name', 'address']
+        read_only_fields = ['owner']
