@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 from farm.models import Farm
-
+from section_management.models import SectionItem
 
 class Employee(models.Model):
     ROLE_CHOICES = [
@@ -12,11 +12,7 @@ class Employee(models.Model):
         ("Active", "Active"),
         ("Inactive", "Inactive"),
     ]
-    EMPLOYEE_SECTION_CHOICES = [
-        ("A", "Section A"),
-        ("B", "Section B"),
-        ("C", "Section C"),
-    ]
+
 
     employee_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
@@ -24,9 +20,7 @@ class Employee(models.Model):
     contactNumber = models.CharField(max_length=50)
     email = models.EmailField()
     farm = models.ForeignKey(Farm, on_delete=models.CASCADE, related_name='employees')
-    section = models.CharField(
-        max_length=1, choices=EMPLOYEE_SECTION_CHOICES, default="A"
-    )
+    section = models.CharField(max_length=255)
     start_date = models.DateField()
     salary = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="active")
@@ -35,6 +29,7 @@ class Employee(models.Model):
     )  # Photo field added
     class Meta:
         # Add a unique constraint across email, contactNumber, and farm fields
-        unique_together = ['email', 'contactNumber', 'farm']
+        unique_together = [ 'contactNumber', 'farm']
+        unique_together = ['email',  'farm']
     def __str__(self):
         return self.name
