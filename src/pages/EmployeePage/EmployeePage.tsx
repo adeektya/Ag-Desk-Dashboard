@@ -42,6 +42,7 @@ import ApprovalTable from './ApprovedList';
 
 const EmployeePage = () => {
   const { activeFarm } = useFarm();
+  const [sections, setSections] = useState([]); // State to store sections
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [employees, setEmployees] = useState([]);
@@ -122,6 +123,39 @@ const EmployeePage = () => {
   
     fetchEmployeesData();
   }, [activeFarm]);
+
+  useEffect(() => {
+    fetchSections();
+  }, [activeFarm]);
+
+  const fetchSections = async () => {
+    if (!activeFarm) {
+      console.log('No active farm selected.');
+      return;
+    }
+    try {
+      const response = await axios.get(
+        `http://127.0.0.1:8000/section/?farm_id=${activeFarm.id}`
+      );
+      const fetchedSections = response.data.map((section) => ({
+        id: section.id,
+        name: section.section_name,
+      }));
+      console.log('Fetched sections:', JSON.stringify(fetchedSections, null, 2));
+
+      // Add "Other" and "All" options
+      const updatedSections = [
+        { id: 'All', name: 'All' },
+        { id: 'Other', name: 'Other' },
+        ...fetchedSections,
+      ];
+console.log("updatedSections"+updatedSections)
+      setSections(updatedSections);
+    } catch (error) {
+      console.error('Failed to fetch sections', error);
+    }
+  };
+
 
   const handleClose = () => {
     setOpen(false);
@@ -447,12 +481,18 @@ const EmployeePage = () => {
                   id="section"
                   label="Section"
                   name="section"
-                  {...formik.getFieldProps('section')}
+                  value={formik.values.section}
+                  onChange={formik.handleChange}
+                  error={formik.touched.section && Boolean(formik.errors.section)}
+                  helperText={formik.touched.section && formik.errors.section}
                 >
-                  <MenuItem value="A">A</MenuItem>
-                  <MenuItem value="B">B</MenuItem>
-                  <MenuItem value="C">C</MenuItem>
+                  {sections.map((section) => (
+                    <MenuItem key={section.id} value={section.id}>
+                      {section.name}
+                    </MenuItem>
+                  ))}
                 </TextField>
+                
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
@@ -572,7 +612,9 @@ const EmployeePage = () => {
         </Alert>
       </Snackbar>
     </DefaultLayout>
+    
   );
+  
 };
 
 export default EmployeePage;
