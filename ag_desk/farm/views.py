@@ -5,12 +5,17 @@ from rest_framework import viewsets
 from .models import Farm
 from .serializers import FarmSerializer
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
+from core.models import CustomUser
 class FarmViewSet(viewsets.ModelViewSet):
     queryset = Farm.objects.all()
     serializer_class = FarmSerializer
     permission_classes = [IsAuthenticated]  # Make sure you require authentication
-
+    def get_queryset(self):
+        user = self.request.user
+        print(f"Fetching farms for user: {user}")
+        farms = Farm.objects.filter(owner=user)
+        print(f"Found farms: {farms}")
+        return farms
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
