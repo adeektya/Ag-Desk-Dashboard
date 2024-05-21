@@ -20,13 +20,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import './topcards.css';
 
-const inventoryItems = [
-  { name: 'Seeds', quantity: 20 },
-  { name: 'Fertilizer', quantity: 50 },
-  { name: 'Feed', quantity: 5 },
-  // ...other items
-];
-const lowInventoryThreshold = 10;
+
 
 const DataStatsThree: React.FC = () => {
   const { activeFarm } = useFarm();
@@ -34,6 +28,7 @@ const DataStatsThree: React.FC = () => {
   const [newTodo, setNewTodo] = useState('');
   const [user, setUser] = useState(null);
   const [notes, setNotes] = useState([]); // State to store notes data
+  const [inventory, setInventory] = useState([]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -55,6 +50,7 @@ const DataStatsThree: React.FC = () => {
 
     fetchUserData();
   }, []);
+  // fetch notes
   useEffect(() => {
     const fetchNotes = async () => {
       try {
@@ -74,6 +70,24 @@ const DataStatsThree: React.FC = () => {
   
     fetchNotes();
   }, [activeFarm]); // Make sure to include activeFarm in the dependency array
+  
+    // Fetch inventory data
+    useEffect(() => {
+      if (activeFarm ) {
+        fetchInventoryItems();
+      }
+    }, [activeFarm]);
+  
+    const fetchInventoryItems = async () => {
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/inventory/?farm_id=${activeFarm.id}`);
+        const data = response.data.filter(inventoryitem => inventoryitem.status === 'needs repair'||inventoryitem.status === "service due");
+        
+        setInventory(data);
+      } catch (error) {
+        console.error('Failed to fetch inventory items:', error);
+      }
+    };
   
   const handleAddTodo = () => {
     if (newTodo.trim() !== '') {
@@ -255,19 +269,21 @@ const DataStatsThree: React.FC = () => {
         <Card className="card">
           <CardContent className="card-content">
             <Typography variant="h5" component="h2">
-              Inventory Status
+              Inventory Maintance history
             </Typography>
             <List>
-              {inventoryItems.map((item, index) => (
+              {inventory.map((item, index) => (
                 <ListItem key={index}>
                   <ListItemIcon>
                     {/* Replace with an appropriate icon for the item */}
-                    <Badge badgeContent={item.quantity} color="primary" />
+                    
                   </ListItemIcon>
                   <ListItemText primary={item.name} />
-                  {item.quantity <= lowInventoryThreshold && (
-                    <WarningIcon color="error" className="warning-icon" /> // Added class for styling
-                  )}
+                  <ListItemText
+              primary={item.status} // Add the status field here
+              className='item-details'
+            />
+            
                 </ListItem>
               ))}
             </List>
