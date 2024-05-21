@@ -97,18 +97,6 @@ const DropdownUser = () => {
           </ListItemIcon>
           My Profile
         </MenuItem>
-        <MenuItem component={Link} to="/messages">
-          <ListItemIcon>
-            <Message fontSize="small" />
-          </ListItemIcon>
-          My Messages
-        </MenuItem>
-        <MenuItem component={Link} to="/settings">
-          <ListItemIcon>
-            <Settings fontSize="small" />
-          </ListItemIcon>
-          Settings
-        </MenuItem>
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
             <Logout fontSize="small" />
