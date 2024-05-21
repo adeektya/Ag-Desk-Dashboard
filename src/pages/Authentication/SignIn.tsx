@@ -9,18 +9,25 @@ import {
   Typography,
   InputAdornment,
   IconButton,
+  CssBaseline,
+  Paper,
 } from '@mui/material';
-import {
-  Google as GoogleIcon,
-  Visibility,
-  VisibilityOff,
-} from '@mui/icons-material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from './api';
 import { useAuth } from '../../contexts/AuthContext';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
-const password = ''; // Declare the password variable
-const email = ''; // Declare the email variable
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#4caf50',
+    },
+    secondary: {
+      main: '#ff5722',
+    },
+  },
+});
 
 const SignIn: React.FC = () => {
   const { login } = useAuth();
@@ -74,112 +81,95 @@ const SignIn: React.FC = () => {
   }, [login, navigate]);
 
   return (
-    <Container maxWidth="md">
-      <Box
-        sx={{
-          borderRadius: '8px',
-          border: '1px solid',
-          borderColor: 'divider',
-          bgcolor: 'background.paper',
-          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
-          p: 4,
-        }}
-      >
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={6}>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                textAlign: 'center',
-                p: 4,
-              }}
-            >
-              <Typography variant="h4" component="h2" gutterBottom>
-                Welcome Back
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit
-                suspendisse.
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <Box sx={{ p: 4 }}>
-              <Typography variant="h5" component="h3" gutterBottom>
-                Sign In
-              </Typography>
-              <form onSubmit={handleSubmit}>
-                <TextField
-                  label="Email"
-                  variant="outlined"
-                  fullWidth
-                  margin="normal"
-                  value={email}
-                  onChange={handleChange('email')}
-                />
-                <TextField
-                  label="Password"
-                  variant="outlined"
-                  fullWidth
-                  margin="normal"
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={handleChange('password')}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="toggle password visibility"
-                          onClick={handleClickShowPassword}
-                          onMouseDown={handleMouseDownPassword}
-                          edge="end"
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  sx={{ mt: 2 }}
-                >
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Container maxWidth="md" sx={{ mt: 8 }}>
+        <Paper elevation={6} sx={{ p: 4 }}>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                  textAlign: 'center',
+                  p: 4,
+                }}
+              >
+                <Typography variant="h4" component="h2" gutterBottom>
+                  Welcome Back
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Please enter your details to sign in.
+                </Typography>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ p: 4 }}>
+                <Typography variant="h5" component="h3" gutterBottom>
                   Sign In
-                </Button>
-              </form>
-              <Box sx={{ mt: 2, textAlign: 'center' }}>
-                <Typography variant="body2" color="text.secondary">
-                  Or sign in with
                 </Typography>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  startIcon={<GoogleIcon />}
-                  sx={{ mt: 1 }}
-                >
-                  Sign in with Google
-                </Button>
+                <form onSubmit={handleSubmit}>
+                  <TextField
+                    label="Email"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    value={email}
+                    onChange={handleChange('email')}
+                  />
+                  <TextField
+                    label="Password"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={handleChange('password')}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label="toggle password visibility"
+                            onClick={handleClickShowPassword}
+                            onMouseDown={handleMouseDownPassword}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    fullWidth
+                    sx={{ mt: 2 }}
+                  >
+                    Sign In
+                  </Button>
+                </form>
+                <Box sx={{ mt: 2, textAlign: 'center' }}>
+                  <Typography variant="body2">
+                    Don't have an account?{' '}
+                    <Link
+                      to="/signup"
+                      style={{ color: theme.palette.primary.main }}
+                    >
+                      Sign up
+                    </Link>
+                  </Typography>
+                </Box>
               </Box>
-              <Box sx={{ mt: 2, textAlign: 'center' }}>
-                <Typography variant="body2">
-                  Don't have an account?{' '}
-                  <Link to="/signup" style={{ color: 'primary.main' }}>
-                    Sign up
-                  </Link>
-                </Typography>
-              </Box>
-            </Box>
+            </Grid>
           </Grid>
-        </Grid>
-      </Box>
-    </Container>
+        </Paper>
+      </Container>
+    </ThemeProvider>
   );
 };
 

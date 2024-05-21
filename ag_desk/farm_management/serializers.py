@@ -1,31 +1,32 @@
 from rest_framework import serializers
-from .models import Task, Subtask,Note
+from .models import Task, Subtask, Note
 from employee_management.models import Employee
 from farm.models import Farm
+from drf_extra_fields.fields import Base64ImageField
 
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
         fields = '__all__'
+
 class SubtaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subtask
         fields = ["id", "description", "completed"]
 
-
 class TaskSerializer(serializers.ModelSerializer):
     subtasks = SubtaskSerializer(many=True)
     assigned_employee = serializers.PrimaryKeyRelatedField(
         queryset=Employee.objects.all(),
-        allow_null=True,  # Since it can be blank
-        required=False,  # Not required
+        allow_null=True,
+        required=False,
     )
-    
     farm = serializers.PrimaryKeyRelatedField(
         queryset=Farm.objects.all(),
-        write_only=True  # Make farm write-only if you do not wish to send this in response
+        write_only=True
     )
-    assigned_employee_name = serializers.SerializerMethodField()  # Add this line
+    assigned_employee_name = serializers.SerializerMethodField()
+    image = Base64ImageField(required=False)
 
     class Meta:
         model = Task
@@ -91,4 +92,3 @@ class TaskSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
-

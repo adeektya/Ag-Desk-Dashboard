@@ -136,14 +136,6 @@ const Section: React.FC<{
           <Typography variant="body1" component="p" gutterBottom>
             {text}
           </Typography>
-          <Box mt={2}>
-            <Button variant="contained" color="primary" sx={{ m: 1 }}>
-              Learn More
-            </Button>
-            <Button variant="outlined" color="primary" sx={{ m: 1 }}>
-              Sign Up
-            </Button>
-          </Box>
         </Grid>
         <Grid item xs={12} md={6}>
           <img

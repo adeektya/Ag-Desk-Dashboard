@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import Task, Subtask,Note
-from .serializers import TaskSerializer, SubtaskSerializer,NoteSerializer
+from .models import Task, Subtask, Note
+from .serializers import TaskSerializer, SubtaskSerializer, NoteSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes
@@ -10,13 +10,14 @@ from django.shortcuts import get_object_or_404
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
+
     def get_queryset(self):
         """
         Optionally restricts the returned tasks to a given farm,
         by filtering against a `farm_id` query parameter in the URL.
         """
         queryset = Task.objects.all()
-        farm_id = self.request.query_params.get('farm_id', None)
+        farm_id = self.request.query_params.get("farm_id", None)
         if farm_id is not None:
             queryset = queryset.filter(farm_id=farm_id)
         return queryset
@@ -37,16 +38,18 @@ class TaskViewSet(viewsets.ModelViewSet):
 class SubtaskViewSet(viewsets.ModelViewSet):
     queryset = Subtask.objects.all()
     serializer_class = SubtaskSerializer
+
+
 @api_view(["GET", "POST"])
 @parser_classes((MultiPartParser, FormParser, JSONParser))
 def note_list(request):
     if request.method == "GET":
-        farm_id = request.query_params.get('farm_id')
+        farm_id = request.query_params.get("farm_id")
         if farm_id:
             notes = Note.objects.filter(farm_id=farm_id)
         else:
             notes = Note.objects.all()
-        
+
         serializer = NoteSerializer(notes, many=True)
         return Response(serializer.data)
     elif request.method == "POST":
@@ -56,6 +59,7 @@ def note_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(["DELETE"])
 @parser_classes((MultiPartParser, FormParser, JSONParser))
@@ -67,4 +71,6 @@ def note_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     # Handle any other unsupported HTTP methods
-    return Response({"detail": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    return Response(
+        {"detail": "Method not allowed."}, status=status.HTTP_405_METHOD_NOT_ALLOWED
+    )

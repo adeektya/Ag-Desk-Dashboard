@@ -13,16 +13,23 @@ import {
   Radio,
   RadioGroup,
   Paper,
+  CssBaseline,
 } from '@mui/material';
-import {
-  Google as GoogleIcon,
-  Visibility,
-  VisibilityOff,
-} from '@mui/icons-material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { registerUser } from './api';
 import { useNavigate } from 'react-router-dom';
-import backgroundImg from '../../images/logo/clearoff.jpeg';
-import './signup.css';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#4caf50',
+    },
+    secondary: {
+      main: '#ff5722',
+    },
+  },
+});
 
 const SignUp: React.FC = () => {
   const [name, setName] = useState('');
@@ -100,39 +107,34 @@ const SignUp: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="md">
-      <Box
-        sx={{
-          my: 4,
-          p: 2,
-          backgroundImage: `url(${backgroundImg})`,
-          backgroundSize: 'cover',
-          borderRadius: 2,
-        }}
-      >
-        <Paper elevation={3} sx={{ p: 4, bgcolor: 'rgba(255, 255, 255, 0.8)' }}>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Container maxWidth="md" sx={{ mt: 8 }}>
+        <Paper elevation={6} sx={{ p: 4 }}>
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
               <Box
                 sx={{
-                  p: 4,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  height: '100%',
+                  textAlign: 'center',
+                  p: 4,
                 }}
               >
-                <Typography variant="h4" gutterBottom>
+                <Typography variant="h4" component="h2" gutterBottom>
                   Welcome to Ag-Desk
                 </Typography>
-                <Typography>
+                <Typography variant="body1" color="text.secondary">
                   Join us and optimize your farm management.
                 </Typography>
               </Box>
             </Grid>
             <Grid item xs={12} md={6}>
               <Box sx={{ p: 4 }}>
-                <Typography variant="h5" gutterBottom>
+                <Typography variant="h5" component="h3" gutterBottom>
                   Sign Up
                 </Typography>
                 <form onSubmit={handleSubmit}>
@@ -164,7 +166,8 @@ const SignUp: React.FC = () => {
                       endAdornment: (
                         <InputAdornment position="end">
                           <IconButton
-                            onClick={() => setShowPassword(!showPassword)}
+                            onClick={handleClickShowPassword}
+                            onMouseDown={handleMouseDownPassword}
                             edge="end"
                           >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
@@ -177,6 +180,7 @@ const SignUp: React.FC = () => {
                     row
                     value={userRole}
                     onChange={(e) => setUserRole(e.target.value)}
+                    sx={{ mt: 2 }}
                   >
                     <FormControlLabel
                       value="owner"
@@ -230,23 +234,13 @@ const SignUp: React.FC = () => {
                   </Button>
                 </form>
                 <Box sx={{ mt: 2, textAlign: 'center' }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Or sign up with
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    startIcon={<GoogleIcon />}
-                    sx={{ mt: 1 }}
-                  >
-                    Sign up with Google
-                  </Button>
-                </Box>
-                <Box sx={{ mt: 2, textAlign: 'center' }}>
                   <Typography variant="body2">
                     Already have an account?{' '}
-                    <Link to="/signin" style={{ color: 'primary.main' }}>
-                      login here
+                    <Link
+                      to="/signin"
+                      style={{ color: theme.palette.primary.main }}
+                    >
+                      Login here
                     </Link>
                   </Typography>
                 </Box>
@@ -254,8 +248,8 @@ const SignUp: React.FC = () => {
             </Grid>
           </Grid>
         </Paper>
-      </Box>
-    </Container>
+      </Container>
+    </ThemeProvider>
   );
 };
 

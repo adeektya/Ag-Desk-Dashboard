@@ -26,15 +26,15 @@ interface TaskCardProps {
 const TaskCard: React.FC<TaskCardProps> = ({
   id,
   title,
-  subtasks = [], // Default to an empty array if subtasks are undefined
+  subtasks = [],
   severity,
   image,
   status,
   assignedEmployee,
-  assigned_employee_name, // Check for this prop
+  assigned_employee_name,
   onEdit,
   onDelete,
-  dueDate, // Check for this prop
+  dueDate,
 }) => {
   console.log('TaskCard Props:', {
     id,
@@ -57,14 +57,9 @@ const TaskCard: React.FC<TaskCardProps> = ({
     [id, title, status, severity]
   );
 
-  // Log to check the props
-  console.log(
-    `TaskCard Rendering: ${title}, Status: ${status}, Severity: ${severity}`
-  );
-
   const getSeverityClass = (severity: string) => {
     switch (
-      severity?.toLowerCase() // Use optional chaining and toLowerCase
+      severity?.toLowerCase()
     ) {
       case 'high':
         return 'task-card__severity--high';

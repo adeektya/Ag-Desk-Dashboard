@@ -87,7 +87,7 @@ const TaskKanban: React.FC = () => {
     const taskToEdit = findTaskById(taskId);
     if (taskToEdit) {
       setEditingTaskId(taskId);
-      setEditTaskDetails({
+      setTaskDetails({
         type: taskToEdit.status,
         title: taskToEdit.title,
         severity: taskToEdit.severity,
@@ -135,26 +135,26 @@ const TaskKanban: React.FC = () => {
 
   const fetchTasks = () => {
     if (activeFarm) {
-    axios
-    
-      .get(`http://127.0.0.1:8000/api/tasks/?farm_id=${activeFarm.id}`)
-      .then((response) => {
-        const fetchedTasks = response.data;
-        const tasksByStatus = fetchedTasks.reduce((acc, task) => {
-          acc[task.status] = acc[task.status] || [];
-          acc[task.status].push(task);
-          return acc;
-        }, {});
-        setKanbanData({
-          todo: { tasks: tasksByStatus.todo || [] },
-          inProgress: { tasks: tasksByStatus.inProgress || [] },
-          onHold: { tasks: tasksByStatus.onHold || [] },
-          completed: { tasks: tasksByStatus.completed || [] },
-        });
-      })
-      .catch((error) => console.error('Error fetching tasks:', error));
+      axios
+
+        .get(`http://127.0.0.1:8000/api/tasks/?farm_id=${activeFarm.id}`)
+        .then((response) => {
+          const fetchedTasks = response.data;
+          const tasksByStatus = fetchedTasks.reduce((acc, task) => {
+            acc[task.status] = acc[task.status] || [];
+            acc[task.status].push(task);
+            return acc;
+          }, {});
+          setKanbanData({
+            todo: { tasks: tasksByStatus.todo || [] },
+            inProgress: { tasks: tasksByStatus.inProgress || [] },
+            onHold: { tasks: tasksByStatus.onHold || [] },
+            completed: { tasks: tasksByStatus.completed || [] },
+          });
+        })
+        .catch((error) => console.error('Error fetching tasks:', error));
+    }
   };
-}
 
   const validateForm = (): boolean => {
     let errors: FormErrors = { type: '', title: '', severity: '' };
@@ -165,33 +165,74 @@ const TaskKanban: React.FC = () => {
     return !Object.values(errors).some((error) => error !== '');
   };
 
-  const onMoveTask = (taskId, newStatus) => {
+  const onMoveTask = async (taskId, newStatus) => {
     const taskToUpdate = findTaskById(taskId);
     if (taskToUpdate) {
-      const updatedTask = { ...taskToUpdate, status: newStatus };
+      let base64Image = taskToUpdate.image;
 
-      axios
-        .put(`http://127.0.0.1:8000/api/tasks/${taskId}/`, updatedTask)
-        .then((response) => {
-          console.log('Task updated successfully on the server.');
-          // Update the local state after the server update is successful
-          setKanbanData((prevState) => {
-            let newState = { ...prevState };
-            // Remove the task from its current status list
-            Object.keys(newState).forEach((status) => {
-              newState[status].tasks = newState[status].tasks.filter(
-                (task) => task.id !== taskId
-              );
-            });
-            // Add the task to the new status list
-            newState[newStatus].tasks.push(updatedTask);
-            return newState;
+      // Check if the image is a URL and convert it to base64 if necessary
+      if (
+        typeof taskToUpdate.image === 'string' &&
+        taskToUpdate.image.startsWith('http')
+      ) {
+        try {
+          const response = await fetch(taskToUpdate.image);
+          const blob = await response.blob();
+          base64Image = await convertToBase64(blob);
+        } catch (error) {
+          console.error('Error converting image URL to base64:', error);
+        }
+      }
+
+      // Ensure all required fields are included in the payload
+      const updatedTask = {
+        ...taskToUpdate,
+        status: newStatus,
+        image: base64Image || '', // Ensure the image field is a base64 encoded string
+        assigned_employee: taskToUpdate.assigned_employee, // Include assigned employee
+        subtasks: taskToUpdate.subtasks.map((subtask) => ({
+          id: subtask.id,
+          description: subtask.description,
+          completed: subtask.completed,
+        })), // Ensure subtasks are included
+      };
+
+      console.log('Payload being sent for update:', updatedTask);
+
+      try {
+        const response = await axios.put(
+          `http://127.0.0.1:8000/api/tasks/${taskId}/`,
+          updatedTask,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        const updatedTaskData = response.data;
+        console.log('Task updated successfully on the server.');
+
+        // Update the local state after the server update is successful
+        setKanbanData((prevState) => {
+          let newState = { ...prevState };
+          // Remove the task from its current status list
+          Object.keys(newState).forEach((status) => {
+            newState[status].tasks = newState[status].tasks.filter(
+              (task) => task.id !== taskId
+            );
           });
-        })
-        .catch((error) => {
-          console.error('Error updating task status:', error);
-          // Handle the error, show an error message, or revert the UI state
+          // Add the task to the new status list
+          newState[newStatus].tasks.push(updatedTaskData);
+          return newState;
         });
+      } catch (error) {
+        console.error(
+          'Error updating task status:',
+          error.response?.data || error
+        );
+        console.error('Error details:', error.config.data);
+        // Handle the error, show an error message, or revert the UI state
+      }
     }
   };
 
@@ -273,6 +314,11 @@ const TaskKanban: React.FC = () => {
     console.log('Submitting task:', taskDetails);
     if (!validateForm()) return;
 
+    let base64Image = '';
+    if (taskDetails.image) {
+      base64Image = await convertToBase64(taskDetails.image);
+    }
+
     const taskData = {
       title: taskDetails.title,
       status: taskDetails.type,
@@ -280,6 +326,7 @@ const TaskKanban: React.FC = () => {
       assigned_employee: taskDetails.assignedEmployee,
       due_date: taskDetails.dueDate,
       farm: activeFarm.id,
+      image: base64Image,
       subtasks: taskDetails.subtasks.map((subtask) => ({
         description: subtask.description,
         completed: false,
@@ -340,6 +387,16 @@ const TaskKanban: React.FC = () => {
       );
     }
   };
+
+  const convertToBase64 = (file: Blob): Promise<string> => {
+  if (!file) return Promise.resolve('');
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+};
 
   return (
     <DndProvider backend={HTML5Backend}>
