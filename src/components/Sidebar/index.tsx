@@ -56,10 +56,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   };
 
   useEffect(() => {
-    if (farms.length === 0) {
+   
       fetchFarms();
-    }
-  }, [farms]);
+   
+  }, [farms.length]);
 
   const fetchFarms = async () => {
     const token = localStorage.getItem('token');
