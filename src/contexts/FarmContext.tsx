@@ -28,9 +28,9 @@ export const FarmProvider = ({ children }: { children: ReactNode }) => {
 
   const updateFarms = (newFarms: Farm[]) => {
     setFarms(newFarms);
-    if (!activeFarm && newFarms.length > 0) {
+    
       setActiveFarm(newFarms[0]);
-    }
+    
   };
 
   const initializeFarms = async () => {
