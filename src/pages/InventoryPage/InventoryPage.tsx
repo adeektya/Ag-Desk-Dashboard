@@ -85,7 +85,7 @@ const InventoryManagement: React.FC = () => {
 
   const fetchSections = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/section/');
+      const response = await axios.get(`http://127.0.0.1:8000/section/?farm_id=${activeFarm.id}`);
       setSections(response.data);
     } catch (error) {
       console.error('Failed to fetch sections:', error);
