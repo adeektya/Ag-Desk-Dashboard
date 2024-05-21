@@ -18,6 +18,7 @@ interface FarmContextType {
   activeFarm: Farm | null;
   setActiveFarm: (farm: Farm) => void;
   updateFarms: (farms: Farm[]) => void; // Method to update the list of farms
+  clearStates:()=> void;
 }
 
 const FarmContext = createContext<FarmContextType | undefined>(undefined);
@@ -25,6 +26,13 @@ const FarmContext = createContext<FarmContextType | undefined>(undefined);
 export const FarmProvider = ({ children }: { children: ReactNode }) => {
   const [farms, setFarms] = useState<Farm[]>([]);
   const [activeFarm, setActiveFarm] = useState<Farm | null>(null);
+  const clearStates=()=>{
+    console.log("entring clear state")
+    setFarms([]);
+    setActiveFarm(null);
+
+
+  }
 
   const updateFarms = (newFarms: Farm[]) => {
     setFarms(newFarms);
@@ -52,7 +60,7 @@ export const FarmProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <FarmContext.Provider
-      value={{ farms, activeFarm, setActiveFarm, updateFarms }}
+      value={{ farms, activeFarm, setActiveFarm, updateFarms,clearStates }}
     >
       {children}
     </FarmContext.Provider>
