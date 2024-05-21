@@ -16,6 +16,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from './api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useFarm } from '../../contexts/FarmContext';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 const theme = createTheme({
@@ -30,6 +31,7 @@ const theme = createTheme({
 });
 
 const SignIn: React.FC = () => {
+  const { clearStates } = useFarm();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -79,6 +81,11 @@ const SignIn: React.FC = () => {
       navigate('/'); // redirect to the dashboard or home page
     }
   }, [login, navigate]);
+   useEffect(() => {
+    
+    clearStates();
+  }, [login, navigate]);
+
 
   return (
     <ThemeProvider theme={theme}>
