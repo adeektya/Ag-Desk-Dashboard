@@ -416,8 +416,7 @@ console.log("updatedSections"+updatedSections)
           columns={columns}
           autoPageSize
           pagination
-          filterMode='server'
-          sortingMode='server'
+         
           checkboxSelection
           onRowSelectionModelChange={(newSelectionModel) => {
             setSelectedRows(newSelectionModel);
@@ -487,7 +486,7 @@ console.log("updatedSections"+updatedSections)
                   helperText={formik.touched.section && formik.errors.section}
                 >
                   {sections.map((section) => (
-                    <MenuItem key={section.id} value={section.id}>
+                    <MenuItem key={section.id} value={section.name}>
                       {section.name}
                     </MenuItem>
                   ))}
