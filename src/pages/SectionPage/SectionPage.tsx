@@ -1,6 +1,4 @@
-import DefaultLayout from '../../layout/DefaultLayout';
-import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Button,
   Dialog,
@@ -17,14 +15,18 @@ import {
   DialogActions,
   IconButton,
 } from '@mui/material';
-import { DataGrid, GridPaginationModel } from '@mui/x-data-grid';
+import { DataGrid } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import axios from 'axios';
+import DefaultLayout from '../../layout/DefaultLayout';
+import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import { useFarm } from '../../contexts/FarmContext';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 
 const SectionPage = () => {
   const { activeFarm } = useFarm();
@@ -32,14 +34,6 @@ const SectionPage = () => {
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
-  const [formData, setFormData] = useState({
-    section_name: '',
-    location: '',
-    size_acers: '',
-    section_type: '',
-    add_info: '',
-
-  });
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -65,151 +59,22 @@ const SectionPage = () => {
   const handleClose = () => {
     setOpen(false);
     setEditMode(false); 
-    setFormData({ 
-    section_name: '',
-    location: '',
-    size_acers: '',
-    section_type: '',
-    add_info: '',
-  });
-    
-  };
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    // Check if the field is a date field and if the value is empty
-
-    setFormData({
-      ...formData,
-      [name]: value, // Update the specific field based on input
-    });
-  };
-
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const updatedFormData = {
-      ...formData,
-      farm: activeFarm.id,
-    
-    };
-    try {
-
-      // Submit the data
-      const response = await axios.post(
-        'http://127.0.0.1:8000/section/',
-        updatedFormData
-      );
-      setRows([...rows, response.data]);
-      handleClose();
-    } catch (error) {
-      if (error.response) {
-        // The request was made and the server responded with a status code
-        console.error(
-          'Request failed with status code:',
-          error.response.status
-        );
-        console.error('Error response:', error.response.data);
-        alert(
-          `Request failed with status code: ${
-            error.response.status
-          }\n${JSON.stringify(error.response.data)}`
-        );
-      } else if (error.request) {
-        // The request was made but no response was received
-        console.error('No response received:', error.request);
-        alert('No response received from the server. Please try again later.');
-      } else {
-        // Something happened in setting up the request that triggered an error
-        console.error('Error setting up request:', error.message);
-        alert(`Error setting up request: ${error.message}`);
-      }
-
-      // Display specific field errors
-      if (
-        error.response &&
-        error.response.data &&
-        typeof error.response.data === 'object'
-      ) {
-        const fieldErrors = Object.entries(error.response.data as Record<string, { string: string }[]>).map(
-          ([field, errors]) => {
-            return `${field}: ${errors
-              .map((error) => error.string)
-              .join(', ')}`;
-          }
-        );
-        alert(`Field errors:\n${fieldErrors.join('\n')}`);
-      }
-    }
+    formik.resetForm();
   };
 
   const handleEditOpen = (row) => {
     setEditMode(true);
     setEditingRow(row);
-    setFormData(row);
+    formik.setValues(row);
     setOpen(true);
   };
-
-  const handleUpdate = async (event, id) => {
-    event.preventDefault();
-
-    const updatedFormData = {
-      ...formData,
-      farm: activeFarm.id,
-    
-    };
-    console.log('Updating ID:', id); // Ensure the ID is being passed correctly
-    if (id) {
-      try {
-        const response = await axios.put(
-          `http://127.0.0.1:8000/section/${id}/`,
-          updatedFormData,
-          {
-            headers: {
-              'Content-Type': 'application/json' // Ensure the correct content type; adjust if necessary
-            }
-          }
-        );
-        const updatedRows = rows.map((row) =>
-          row.id === id ? response.data : row
-        );
-        setRows(updatedRows);
-        handleClose();
-      } catch (error) {
-        console.error('Failed to update section', error);
-        // More detailed error information
-        if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
-          console.error('Error response data:', error.response.data);
-          console.error('Error status code:', error.response.status);
-          console.error('Error headers:', error.response.headers);
-          alert(`Failed to update. Status: ${error.response.status}. ${JSON.stringify(error.response.data)}`);
-        } else if (error.request) {
-          // The request was made but no response was received
-          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-          // http.ClientRequest in node.js
-          console.error('No response received:', error.request);
-          alert('No response received from the server. Please check network or server status.');
-        } else {
-          // Something happened in setting up the request that triggered an Error
-          console.error('Error', error.message);
-          alert('Error: ' + error.message);
-        }
-      }
-    } else {
-      console.error('Invalid ID');
-      alert('Invalid ID provided for update.');
-    }
-  };
-  
 
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://127.0.0.1:8000/section/${id}/`);
       setRows(rows.filter((row) => row.id !== id));
     } catch (error) {
-      console.error('Failed to delete inventory item', error);
+      console.error('Failed to delete section', error);
     }
   };
 
@@ -218,36 +83,16 @@ const SectionPage = () => {
   const handleDeleteSelected = async () => {
     if (selectedRows.length === 0) {
       console.log('No items selected for deletion.');
-      return; // Early return if no items are selected
+      return;
     }
 
     const deletePromises = selectedRows.map((id) =>
-      axios
-        .delete(`http://127.0.0.1:8000/section/${id}/`)
+      axios.delete(`http://127.0.0.1:8000/section/${id}/`)
         .then(() => ({ success: true, id }))
-        .catch((error) => ({
-          success: false,
-          id,
-          error: error.message || 'Failed to delete item',
-        }))
-    );
-
-    const optionPromises = selectedRows.map((id) =>
-      axios
-        .options(`http://127.0.0.1:8000/section/${id}/`)
-        .then(() => ({ success: true, id }))
-        .catch((error) => ({
-          success: false,
-          id,
-          error: error.message || 'Failed to send OPTIONS request',
-        }))
+        .catch((error) => ({ success: false, id, error: error.message }))
     );
 
     try {
-      // Send OPTIONS requests first
-      await Promise.all(optionPromises);
-
-      // Then send DELETE requests
       const deleteResults = await Promise.all(deletePromises);
       const failedDeletes = deleteResults.filter((result) => !result.success);
       if (failedDeletes.length > 0) {
@@ -255,39 +100,72 @@ const SectionPage = () => {
         alert('Failed to delete some items.');
       }
 
-      // Update the rows removing only the successfully deleted ones
-      const deletedIds = deleteResults
-        .filter((result) => result.success)
-        .map((result) => result.id);
-      setRows((currentRows) =>
-        currentRows.filter((row) => !deletedIds.includes(row.id))
-      );
+      const deletedIds = deleteResults.filter((result) => result.success).map((result) => result.id);
+      setRows(rows.filter((row) => !deletedIds.includes(row.id)));
       setSelectedRows([]);
-
-      if (failedDeletes.length === 0) {
-        alert('All selected items were successfully deleted.');
-      }
     } catch (error) {
       console.error('Error processing deletions:', error);
     }
-    handleCloseConfirmDialog();
-
   };
 
-  // Optional: Confirmation dialog state
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const handleRequestError = (error) => {
+    if (error.response) {
+      console.error('Error response:', error.response.data);
+      alert(`Request failed with status code: ${error.response.status}\n${JSON.stringify(error.response.data)}`);
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+      alert('No response received from the server. Please try again later.');
+    } else {
+      console.error('Error setting up request:', error.message);
+      alert(`Error setting up request: ${error.message}`);
+    }
+  };
 
-  const handleOpenConfirmDialog = () => setOpenConfirmDialog(true);
-  const handleCloseConfirmDialog = () => setOpenConfirmDialog(false);
+  // Validation schema for form fields using Yup
+  const validationSchema = Yup.object({
+    section_name: Yup.string().required('Section Name is required'),
+    location: Yup.string().required('Location is required'),
+    size_acers: Yup.number().required('Size (acres) is required,Size must be a positive number').positive('Size must be a positive number'),
+    section_type: Yup.string().required('Section Type is required'),
+  });
 
-
-
-  const statusOptions = ['crop', 'livestock', 'field','barn','other'];
+  // Formik setup for form handling and validation
+  const formik = useFormik({
+    initialValues: {
+      section_name: '',
+      location: '',
+      size_acers: '',
+      section_type: '',
+      add_info: '',
+    },
+    validationSchema: validationSchema,
+    onSubmit: async (values) => {
+      const updatedFormData = { ...values, farm: activeFarm.id };
+      if (editMode) {
+        try {
+          const response = await axios.put(`http://127.0.0.1:8000/section/${editingRow.id}/`, updatedFormData);
+          const updatedRows = rows.map((row) => (row.id === editingRow.id ? response.data : row));
+          setRows(updatedRows);
+          handleClose();
+        } catch (error) {
+          handleRequestError(error);
+        }
+      } else {
+        try {
+          const response = await axios.post('http://127.0.0.1:8000/section/', updatedFormData);
+          setRows([...rows, response.data]);
+          handleClose();
+        } catch (error) {
+          handleRequestError(error);
+        }
+      }
+    },
+  });
 
   const columns = [
     { field: 'section_name', headerName: 'Section Name', width: 150 },
     { field: 'location', headerName: 'Location', width: 150 },
-    { field: 'size_acers', headerName: 'Size (acre)', width: 150 },
+    { field: 'size_acers', headerName: 'Size (acres)', width: 150 },
     { field: 'section_type', headerName: 'Section Type', width: 150 },
     { field: 'add_info', headerName: 'Remark', width: 200 },
     {
@@ -295,20 +173,20 @@ const SectionPage = () => {
       headerName: 'Actions',
       sortable: false,
       width: 100,
-      renderCell: (params) => {
-        return (
-          <>
-            <IconButton onClick={() => handleEditOpen(params.row)}>
-              <EditIcon />
-            </IconButton>
-            <IconButton onClick={() => handleDelete(params.id)}>
-              <DeleteIcon />
-            </IconButton>
-          </>
-        );
-      },
+      renderCell: (params) => (
+        <>
+          <IconButton onClick={() => handleEditOpen(params.row)}>
+            <EditIcon />
+          </IconButton>
+          <IconButton onClick={() => handleDelete(params.id)}>
+            <DeleteIcon />
+          </IconButton>
+        </>
+      ),
     },
   ];
+
+  const statusOptions = ['crop', 'livestock', 'field', 'barn', 'other'];
 
   return (
     <DefaultLayout>
@@ -319,7 +197,7 @@ const SectionPage = () => {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={handleOpen}
-            sx={{ mb: 2, mr: 1 }} // Added right margin
+            sx={{ mb: 2, mr: 1 }}
           >
             Add Section
           </Button>
@@ -327,23 +205,19 @@ const SectionPage = () => {
             variant="contained"
             color="error"
             startIcon={<DeleteIcon />}
-            onClick={handleOpenConfirmDialog}
+            onClick={handleDeleteSelected}
             disabled={selectedRows.length === 0}
             sx={{ mb: 2 }}
           >
             Delete Selected
           </Button>
-
-          <Paper
-            style={{ height: 400, width: '100%' }}
-            className="data-grid-container"
-          >
+          <Paper style={{ height: 400, width: '100%' }}>
             <DataGrid
               rows={rows}
               columns={columns}
               autoPageSize
-              pagination // Enable pagination
-              paginationMode="client" // Set pagination mode to client or server
+              pagination
+              paginationMode="client"
               checkboxSelection
               onRowSelectionModelChange={(newSelectionModel) => {
                 setSelectedRows(newSelectionModel);
@@ -354,9 +228,8 @@ const SectionPage = () => {
           <Dialog
             fullScreen={fullScreen}
             open={open}
-            onClose={editMode ? handleClose : handleClose}
+            onClose={handleClose}
             aria-labelledby="section-dialog"
-            className="dialog-content"
           >
             <DialogTitle id="section-dialog">
               {editMode ? 'Edit Section' : 'Add Section'}
@@ -364,9 +237,7 @@ const SectionPage = () => {
             <DialogContent>
               <Box
                 component="form"
-                onSubmit={(e) =>
-                  editMode ? handleUpdate(e, editingRow.id) : handleSubmit(e)
-                }
+                onSubmit={formik.handleSubmit}
                 noValidate
                 sx={{ mt: 1 }}
               >
@@ -378,43 +249,50 @@ const SectionPage = () => {
                   type="text"
                   fullWidth
                   variant="outlined"
-                  value={formData.section_name}
-                  onChange={handleChange}
+                  value={formik.values.section_name}
+                  onChange={formik.handleChange}
+                  error={formik.touched.section_name && Boolean(formik.errors.section_name)}
+                  helperText={formik.touched.section_name && formik.errors.section_name}
                   required
                 />
                 <TextField
-                  autoFocus
                   margin="dense"
                   name="location"
                   label="Location"
                   type="text"
                   fullWidth
                   variant="outlined"
-                  value={formData.location}
-                  onChange={handleChange}
+                  value={formik.values.location}
+                  onChange={formik.handleChange}
+                  error={formik.touched.location && Boolean(formik.errors.location)}
+                  helperText={formik.touched.location && formik.errors.location}
                   required
                 />
                 <TextField
-                  autoFocus
                   margin="dense"
                   name="size_acers"
-                  label="Size"
-                  type="text"
+                  label="Size (acres)"
+                  type="number"
                   fullWidth
                   variant="outlined"
-                  value={formData.size_acers}
-                  onChange={handleChange}
+                  value={formik.values.size_acers}
+                  onChange={formik.handleChange}
+                  error={formik.touched.size_acers && Boolean(formik.errors.size_acers)}
+                  helperText={formik.touched.size_acers && formik.errors.size_acers}
                   required
-                />                
-                <FormControl fullWidth margin="dense">
-                  <InputLabel id="type-label">Section Type</InputLabel>
+                />
+                <FormControl
+                  fullWidth
+                  margin="dense"
+                  error={formik.touched.section_type && Boolean(formik.errors.section_type)}
+                >
+                  <InputLabel id="type-label" required>Section Type</InputLabel>
                   <Select
                     labelId="type-label"
                     name="section_type"
                     label="Section Type"
-                    value={formData.section_type}
-                    onChange={handleChange}
-                    required
+                    value={formik.values.section_type}
+                    onChange={formik.handleChange}
                   >
                     {statusOptions.map((type, index) => (
                       <MenuItem key={index} value={type}>
@@ -422,25 +300,24 @@ const SectionPage = () => {
                       </MenuItem>
                     ))}
                   </Select>
+                  {formik.touched.section_type && formik.errors.section_type && (
+                    <Box component="div" sx={{ color: 'error.main', mt: 1 }}>
+                      {formik.errors.section_type}
+                    </Box>
+                  )}
                 </FormControl>
                 <TextField
-                  autoFocus
                   margin="dense"
                   name="add_info"
                   label="Remark"
                   type="text"
                   fullWidth
                   variant="outlined"
-                  value={formData.add_info}
-                  onChange={handleChange}
-                  required
-                />  
-      
+                  value={formik.values.add_info}
+                  onChange={formik.handleChange}
+                />
                 <DialogActions>
-                  <Button
-                    onClick={handleClose}
-                    color="primary"
-                  >
+                  <Button onClick={handleClose} color="primary">
                     Cancel
                   </Button>
                   <Button type="submit" color="primary">
@@ -450,27 +327,10 @@ const SectionPage = () => {
               </Box>
             </DialogContent>
           </Dialog>
-          <Dialog
-            open={openConfirmDialog}
-            onClose={handleCloseConfirmDialog}
-            aria-labelledby="confirm-dialog-title"
-          >
-            <DialogTitle id="confirm-dialog-title">
-              Confirm Deletion
-            </DialogTitle>
-            <DialogContent>
-              Are you sure you want to delete the selected items?
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseConfirmDialog}>Cancel</Button>
-              <Button onClick={handleDeleteSelected} color="error" autoFocus>
-                Delete
-              </Button>
-            </DialogActions>
-          </Dialog>
         </Grid>
       </Grid>
     </DefaultLayout>
   );
 };
+
 export default SectionPage;

@@ -336,6 +336,7 @@ const InventoryManagement: React.FC = () => {
                 error={formik.touched.name && Boolean(formik.errors.name)}
                 helperText={formik.touched.name && formik.errors.name}
                 margin="normal"
+                required
               />
               <TextField
                 fullWidth
@@ -348,6 +349,7 @@ const InventoryManagement: React.FC = () => {
                 helperText={formik.touched.item_type && formik.errors.item_type}
                 margin="normal"
                 select
+                required
               >
                 <MenuItem value="seeds">Seeds</MenuItem>
                 <MenuItem value="fertilizers">Fertilizers</MenuItem>
@@ -367,6 +369,7 @@ const InventoryManagement: React.FC = () => {
                 error={formik.touched.quantity && Boolean(formik.errors.quantity)}
                 helperText={formik.touched.quantity && formik.errors.quantity}
                 margin="normal"
+                required
               />
               <TextField
                 fullWidth
@@ -379,6 +382,7 @@ const InventoryManagement: React.FC = () => {
                 helperText={formik.touched.status && formik.errors.status}
                 margin="normal"
                 select
+                required
               >
                 <MenuItem value="operational">Operational</MenuItem>
                 <MenuItem value="needs repair">Needs Repair</MenuItem>
@@ -445,6 +449,7 @@ const InventoryManagement: React.FC = () => {
                 helperText={formik.touched.section_name && formik.errors.section_name}
                 margin="normal"
                 select
+                required
               >
                 {sections.map((section) => (
                   <MenuItem key={section.id} value={section.section_name}>

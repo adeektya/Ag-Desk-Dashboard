@@ -163,7 +163,10 @@ const VehicleManagement: React.FC = () => {
     vehicle_type: Yup.string().required('Vehicle Type is required'),
     vehicle_make: Yup.string().nullable(),
     vehicle_model: Yup.string().nullable(),
-    vehicle_year: Yup.number().nullable(),
+    vehicle_year: Yup.number()
+      .required('Vehicle Year is required')
+      .min(0, 'Year must be at least 0')
+      .max(new Date().getFullYear(), `Year can't be in the future`),
     service_status: Yup.string().required('Service Status is required'),
     next_service_date: Yup.date().nullable(),
     registration_renewal_date: Yup.date().nullable(),
@@ -171,6 +174,7 @@ const VehicleManagement: React.FC = () => {
     image_repair: Yup.mixed().nullable(),
     repair_description: Yup.string().nullable(),
   });
+  
 
   const [serviceStatus, setServiceStatus] = useState<string>('');
 
@@ -208,14 +212,15 @@ const VehicleManagement: React.FC = () => {
     if (!activeFarm) return;
 
     const formData = new FormData();
-  
+
+
     // Append form values to formData
     Object.keys(values).forEach(key => {
       if (key === 'image' || key === 'image_repair') {
         if (values[key] instanceof File) {
           formData.append(key, values[key]);
         }
-      } else {
+      } else if (values[key] !== null){
         formData.append(key, values[key]);
       }
     });
@@ -256,7 +261,7 @@ const VehicleManagement: React.FC = () => {
       }
     }
   };
-  
+
 
   const handleOpen = () => {
     setOpen(true);
@@ -294,7 +299,7 @@ const VehicleManagement: React.FC = () => {
     Object.keys(values).forEach(key => {
       if ((key === 'image' || key === 'image_repair') && values[key]) {
         formData.append(key, values[key]);
-      } else if (key !== 'image' && key !== 'image_repair') {
+      } else if (values[key] !== null) {
         formData.append(key, values[key]);
       }
     });
@@ -378,6 +383,7 @@ const VehicleManagement: React.FC = () => {
                 error={formik.touched.vehicle_name && Boolean(formik.errors.vehicle_name)}
                 helperText={formik.touched.vehicle_name && formik.errors.vehicle_name}
                 margin="normal"
+                required
               />
               <TextField
                 fullWidth
@@ -390,6 +396,7 @@ const VehicleManagement: React.FC = () => {
                 helperText={formik.touched.vehicle_type && formik.errors.vehicle_type}
                 margin="normal"
                 select
+                required
               >
                 <MenuItem value="Utility Vehicle">Utility Vehicle</MenuItem>
                 <MenuItem value="Tractor">Tractor</MenuItem>
@@ -419,19 +426,24 @@ const VehicleManagement: React.FC = () => {
                 helperText={formik.touched.vehicle_model && formik.errors.vehicle_model}
                 margin="normal"
               />
+          
               <TextField
-                fullWidth
-                id="vehicle_year"
-                name="vehicle_year"
-                label="Vehicle Year"
-                type="number"
-                value={formik.values.vehicle_year}
-                onChange={formik.handleChange}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                margin="normal"
-              />
+              fullWidth
+              id="vehicle_year"
+              name="vehicle_year"
+              label="Vehicle Year"
+              type="number"
+              value={formik.values.vehicle_year || ''}
+              onChange={formik.handleChange}
+              error={formik.touched.vehicle_year && Boolean(formik.errors.vehicle_year)}
+              helperText={formik.touched.vehicle_year && typeof formik.errors.vehicle_year === 'string' ? formik.errors.vehicle_year : ''}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              margin="normal"
+              required
+            />
+            
               <TextField
                 fullWidth
                 id="service_status"
@@ -443,6 +455,7 @@ const VehicleManagement: React.FC = () => {
                 helperText={formik.touched.service_status && formik.errors.service_status}
                 margin="normal"
                 select
+                required
               >
                 <MenuItem value="Service Due">Service Due</MenuItem>
                 <MenuItem value="Needs Repair">Needs Repair</MenuItem>

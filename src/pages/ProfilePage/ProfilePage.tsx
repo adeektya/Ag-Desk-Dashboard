@@ -5,6 +5,7 @@ import DefaultLayout from '../../layout/DefaultLayout';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 
 const Profile = () => {
+    
     const [profile, setProfile] = useState({
         username: '',
         email: '',
@@ -67,18 +68,28 @@ const Profile = () => {
 
     const handleSave = async (e) => {
         e.preventDefault();
+    
+        // Client-side validation
+        if (!profile.username) {
+            setApiError('Username is required.');
+            return;
+        }
+        if (!profile.email) {
+            setApiError('Email is required.');
+            return;
+        }
+    
         const formData = new FormData();
-
         formData.append('username', profile.username);
         formData.append('email', profile.email);
         formData.append('first_name', profile.first_name);
         formData.append('last_name', profile.last_name);
         formData.append('phone_number', profile.phone_number);
-
+    
         if (profile.photo && profile.photo instanceof File) {
             formData.append('photo', profile.photo);
         }
-
+    
         try {
             const response = await axios.put('http://127.0.0.1:8000/profile/', formData, {
                 headers: {
@@ -86,17 +97,19 @@ const Profile = () => {
                     'Authorization': `Token ${localStorage.getItem('token')}`
                 }
             });
-
+    
             console.log('Profile updated successfully:', response.data);
             alert('Profile updated successfully');
             window.location.reload();
         } catch (error) {
             console.error('There was an error updating the profile:', error.response || error.message);
-        const errorMessage = error.response?.data?.detail || 'There was an error updating the profile.';
-        setApiError(errorMessage);
-        alert(errorMessage);
+            const errorMessage = error.response?.data?.detail || 'There was an error updating the profile.';
+            setApiError(errorMessage);
+            alert(errorMessage);
         }
     };
+    
+    
 
     const handlePasswordSubmit = async (e) => {
         e.preventDefault();
@@ -222,6 +235,8 @@ const Profile = () => {
                                         name="username"
                                         value={profile.username}
                                         onChange={handleChange}
+                                        error={!profile.username}
+                                        helperText={!profile.username && "Username is required"}
                                     />
                                 </Grid>
                                 <Grid item xs={12}>
@@ -234,6 +249,8 @@ const Profile = () => {
                                         name="email"
                                         value={profile.email}
                                         onChange={handleChange}
+                                        error={!profile.email}
+                                        helperText={!profile.email && "Email is required"}
                                     />
                                 </Grid>
                                 <Grid item xs={12}>
@@ -250,7 +267,6 @@ const Profile = () => {
                                 <Grid item xs={12}>
                                     <TextField
                                         margin="normal"
-                                  
                                         fullWidth
                                         id="last_name"
                                         label="Last Name"
@@ -369,6 +385,7 @@ const Profile = () => {
             </Container>
         </DefaultLayout>
     );
+    
 };
 
 export default Profile;
