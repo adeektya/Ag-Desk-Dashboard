@@ -92,7 +92,9 @@ const Profile = () => {
             window.location.reload();
         } catch (error) {
             console.error('There was an error updating the profile:', error.response || error.message);
-            setApiError(error.response?.data?.detail || 'There was an error updating the profile.');
+        const errorMessage = error.response?.data?.detail || 'There was an error updating the profile.';
+        setApiError(errorMessage);
+        alert(errorMessage);
         }
     };
 
@@ -237,7 +239,6 @@ const Profile = () => {
                                 <Grid item xs={12}>
                                     <TextField
                                         margin="normal"
-                                        required
                                         fullWidth
                                         id="first_name"
                                         label="First Name"
@@ -249,7 +250,7 @@ const Profile = () => {
                                 <Grid item xs={12}>
                                     <TextField
                                         margin="normal"
-                                        required
+                                  
                                         fullWidth
                                         id="last_name"
                                         label="Last Name"
