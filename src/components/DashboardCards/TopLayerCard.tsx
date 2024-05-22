@@ -134,13 +134,19 @@ const DataStatsThree: React.FC = () => {
   const apiKey = import.meta.env.VITE_WEATHER_API_KEY;
 
   useEffect(() => {
+    if (activeFarm) {
+      fetchWeather();
+    }
+  }, [activeFarm]);
+
+
     const fetchWeather = async () => {
       try {
         const response = await axios.get(
           'https://api.tomorrow.io/v4/weather/forecast',
           {
             params: {
-              location: 'brisbane',
+              location: activeFarm.address,
               apikey: apiKey,
             },
           }
@@ -150,9 +156,7 @@ const DataStatsThree: React.FC = () => {
         console.error('Error fetching weather data:', error);
       }
     };
-    fetchWeather();
-    console.log('weather', weather);
-  }, []);
+   
   return (
     <div>
       <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -171,7 +175,7 @@ const DataStatsThree: React.FC = () => {
               gutterBottom
               className="weather-card-title"
             >
-              Weather in Brisbane
+              Weather in {activeFarm ? activeFarm.address : 'loading...'}
             </Typography>
             {weather ? (
               <>
@@ -275,7 +279,7 @@ const DataStatsThree: React.FC = () => {
               {inventory.map((item, index) => (
                 <ListItem key={index}>
                   <ListItemIcon>
-                    {/* Replace with an appropriate icon for the item */}
+                  <WarningIcon color="error" className="warning-icon" />
                     
                   </ListItemIcon>
                   <ListItemText primary={item.name} />
