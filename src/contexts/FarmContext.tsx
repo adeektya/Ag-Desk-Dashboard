@@ -11,6 +11,7 @@ const API_URL = 'http://127.0.0.1:8000/farm/farm/';
 interface Farm {
   id: string;
   name: string;
+  address: string;
 }
 
 interface FarmContextType {

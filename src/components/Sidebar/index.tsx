@@ -36,6 +36,7 @@ interface SidebarProps {
 interface Farm {
   id: string;
   name: string;
+  address: string;
 }
 
 const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
