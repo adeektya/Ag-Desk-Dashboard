@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, TextField, Button } from '@mui/material';
+import { useFarm } from '../../contexts/FarmContext'; // Make sure the path is correct
 import './map.css'; // Import your custom CSS file
 
 declare global {
@@ -8,9 +9,8 @@ declare global {
   }
 }
 
-
-
 const SatelliteMapCard = () => {
+  const { activeFarm } = useFarm();
   const [address, setAddress] = useState('');
   const [googleMap, setGoogleMap] = useState(null);
   const googleMapRef = useRef(null);
@@ -53,6 +53,18 @@ const SatelliteMapCard = () => {
     };
   }, [apiKey]);
 
+  useEffect(() => {
+    if (activeFarm && activeFarm.address) {
+      setAddress(activeFarm.address);
+    }
+  }, [activeFarm]);
+
+  useEffect(() => {
+    if (address && googleMap) {
+      handleSearch();
+    }
+  }, [address, googleMap]);
+
   const handleSearch = () => {
     if (!googleMap) {
       console.error('Google Map not initialized.');
@@ -80,10 +92,7 @@ const SatelliteMapCard = () => {
         }
       }
     );
-
   };
-
-  
 
   return (
     <Card className="satellite-map-card">
