@@ -16,20 +16,20 @@
     text-align: center; /* Center align the header */
   }
   
-  .upcoming-services-header, .maintenance-history-header {
+  .upcoming-services-header, .maintenance-history-header,.upcoming-registrations-header {
     font-size: 1.25rem;
     color: #333;
     margin-top: 1rem;
     text-align: center; /* Center align the section headers */
   }
   
-  .service-list, .history-list {
+  .service-list, .history-list ,.registration-list{
     background-color: #f7f7f7; /* Light background for list */
     border-radius: 8px;
     margin-top: 1rem;
   }
   
-  .service-list-item, .history-list-item {
+  .service-list-item, .history-list-item ,.registration-list-item{
     padding: 0.75rem 1rem;
   }
   
@@ -37,7 +37,7 @@
     font-weight: bold; /* Bold font for item name */
   }
   
-  .service-item-secondary, .history-item-secondary {
+  .service-item-secondary, .history-item-secondary,.registration-item-secondary {
     font-style: italic; /* Italic font for secondary text */
   }
   

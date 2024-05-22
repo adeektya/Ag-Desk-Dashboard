@@ -15,6 +15,7 @@ import { useFarm } from '../../contexts/FarmContext';
 const EquipmentMaintenanceCard: React.FC = () => {
   const { activeFarm } = useFarm();
   const [upcomingServiceVehicles, setUpcomingServiceVehicles] = useState([]);
+  const [upcomingRegistrationVehicles, setUpcomingRegistrationVehicles] = useState([]);
   const [maintenanceRequiredVehicles, setMaintenanceRequiredVehicles] = useState([]);
 
   useEffect(() => {
@@ -24,33 +25,32 @@ const EquipmentMaintenanceCard: React.FC = () => {
   const fetchVehicles = async () => {
     try {
       if (activeFarm) {
-      const response = await axios.get(`http://127.0.0.1:8000/vehicle/?farm_id=${activeFarm.id}`);
-      const data = response.data;
+        const response = await axios.get(`http://127.0.0.1:8000/vehicle/?farm_id=${activeFarm.id}`);
+        const data = response.data;
 
-      // Filter vehicles whose next_service_date or registration_renewal_date is within one month from today
-      const today = new Date();
-      const oneMonthFromNow = new Date(today);
-      oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+        const today = new Date();
+        const oneMonthFromNow = new Date(today);
+        oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
 
-      const upcomingServicesVehicles = data.filter((vehicle) => {
-        const nextServiceDate = new Date(vehicle.next_service_date);
-        const registrationRenewalDate = new Date(vehicle.registration_renewal_date);
-        return (
-          nextServiceDate <= oneMonthFromNow || 
-          registrationRenewalDate <= oneMonthFromNow
+        const upcomingServicesVehicles = data.filter((vehicle) => {
+          const nextServiceDate = new Date(vehicle.next_service_date);
+          return nextServiceDate <= oneMonthFromNow;
+        });
+        setUpcomingServiceVehicles(upcomingServicesVehicles);
+
+        const upcomingRegistrationsVehicles = data.filter((vehicle) => {
+          const registrationRenewalDate = new Date(vehicle.registration_renewal_date);
+          return registrationRenewalDate <= oneMonthFromNow;
+        });
+        setUpcomingRegistrationVehicles(upcomingRegistrationsVehicles);
+
+        const maintenanceRequiredVehicles = data.filter(
+          (vehicle) =>
+            vehicle.service_status === 'Service Due' ||
+            vehicle.service_status === 'Needs Repair'
         );
-      });
-
-      setUpcomingServiceVehicles(upcomingServicesVehicles);
-
-      // Filter vehicles based on service status (service due or needs repair)
-      const maintenanceRequiredVehicles = data.filter(
-        (vehicle) =>
-          vehicle.service_status === 'Service Due' ||
-          vehicle.service_status === 'Needs Repair'
-      );
-      setMaintenanceRequiredVehicles(maintenanceRequiredVehicles);
-    }
+        setMaintenanceRequiredVehicles(maintenanceRequiredVehicles);
+      }
     } catch (error) {
       console.error('Failed to fetch vehicles:', error);
     }
@@ -78,9 +78,29 @@ const EquipmentMaintenanceCard: React.FC = () => {
             <ListItem key={index} className="service-list-item">
               <ListItemText
                 primary={vehicle.vehicle_name}
-                secondary={`Next Service Date: ${vehicle.next_service_date}, Registration Renewal Date: ${vehicle.registration_renewal_date}`}
+                secondary={`Next Service Date: ${vehicle.next_service_date}`}
                 primaryTypographyProps={{ className: 'service-item-primary' }}
                 secondaryTypographyProps={{ className: 'service-item-secondary' }}
+              />
+            </ListItem>
+          ))}
+        </List>
+        <Divider />
+        <Typography
+          sx={{ mt: 2 }}
+          color="text.secondary"
+          className="upcoming-registrations-header"
+        >
+          Upcoming Registration Renewals
+        </Typography>
+        <List className="registration-list">
+          {upcomingRegistrationVehicles.map((vehicle, index) => (
+            <ListItem key={index} className="registration-list-item">
+              <ListItemText
+                primary={vehicle.vehicle_name}
+                secondary={`Registration Renewal Date: ${vehicle.registration_renewal_date}`}
+                primaryTypographyProps={{ className: 'registration-item-primary' }}
+                secondaryTypographyProps={{ className: 'registration-item-secondary' }}
               />
             </ListItem>
           ))}
@@ -100,7 +120,7 @@ const EquipmentMaintenanceCard: React.FC = () => {
           {maintenanceRequiredVehicles.map((vehicle, index) => (
             <ListItem key={index} className="history-list-item">
               <ListItemText
-                primary={`${vehicle.vehicle_name} -  ${vehicle.service_status}`}
+                primary={`${vehicle.vehicle_name} - ${vehicle.service_status}`}
                 primaryTypographyProps={{ className: 'history-item-primary' }}
               />
             </ListItem>
