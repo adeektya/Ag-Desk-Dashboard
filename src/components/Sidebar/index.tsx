@@ -8,7 +8,7 @@ import Inventory2Icon from '@mui/icons-material/Inventory2';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CarRepairIcon from '@mui/icons-material/CarRepair';
 import GrassIcon from '@mui/icons-material/Grass';
-import BASE_URL from '../../../config';  // Adjust the path as needed
+import BASE_URL from '../../../config'; // Adjust the path as needed
 
 import './sidebar.css';
 import axios from 'axios';
@@ -17,6 +17,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import FarmFormDialog from './farmform';
 
 const API_URL = `${BASE_URL}/farm/farm/`;
+const USER_URL = `${BASE_URL}/user/user-detail/`;
 
 const icons = {
   Dashboard: <DashboardIcon />,
@@ -25,8 +26,7 @@ const icons = {
   Inventory: <Inventory2Icon />,
   Employees: <PeopleIcon />,
   Vehicles: <CarRepairIcon />,
-  Section:<GrassIcon/>
-
+  Section: <GrassIcon />,
 };
 
 interface SidebarProps {
@@ -44,9 +44,48 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const { farms, activeFarm, setActiveFarm, updateFarms } = useFarm();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState('add'); // 'add' or 'edit'
-  const [currentFarm, setCurrentFarm] = useState(null);
+  const [currentFarm, setCurrentFarm] = useState<Farm | null>(null);
+  const [isOwner, setIsOwner] = useState(false);
 
-  const handleOpenDialog = (type, farm) => {
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      const token = localStorage.getItem('token');
+      console.log('Token:', token);
+      try {
+        const response = await axios.get(USER_URL, {
+          headers: { Authorization: `Token ${token}` },
+        });
+        setIsOwner(response.data.is_owner);
+        console.log('Fetched user details:', response.data);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
+
+  useEffect(() => {
+    fetchFarms();
+  }, []);
+
+  const fetchFarms = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await axios.get(API_URL, {
+        headers: { Authorization: `Token ${token}` },
+      });
+      console.log('Fetched farms:', response.data);
+      updateFarms(response.data);
+      if (response.data.length > 0) {
+        setActiveFarm(response.data[0]);
+      }
+    } catch (error) {
+      console.error('Error fetching farms:', error);
+    }
+  };
+
+  const handleOpenDialog = (type: string, farm: Farm | null) => {
     setDialogType(type);
     setCurrentFarm(type === 'edit' ? farm : null);
     setIsDialogOpen(true);
@@ -57,26 +96,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     setCurrentFarm(null);
   };
 
-  useEffect(() => {
-   
-      fetchFarms();
-   
-  }, [farms.length]);
-
-  const fetchFarms = async () => {
-    const token = localStorage.getItem('token');
-    try {
-      const response = await axios.get(API_URL, {
-        headers: { Authorization: `Token ${token}` },
-      });
-      console.log('Fetched farms:', response.data);
-      updateFarms(response.data);
-    } catch (error) {
-      console.error('Error fetching farms:', error);
-    }
-  };
-
-  const handleFarmSubmit = async (formData) => {
+  const handleFarmSubmit = async (formData: any) => {
     const token = localStorage.getItem('token');
     const url = currentFarm ? `${API_URL}${currentFarm.id}/` : API_URL;
     const method = currentFarm ? 'put' : 'post';
@@ -99,31 +119,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         error
       );
       alert(`Failed to ${currentFarm ? 'update' : 'add'} farm.`);
-    }
-  };
-  const handleEditFarm = (farm) => {
-    const token = localStorage.getItem('token');
-    const newName = prompt('Enter new farm name:', farm.name);
-    const newAddress = prompt('Enter new farm address:', farm.address);
-
-    if (newName && newAddress) {
-      axios
-        .put(
-          `${API_URL}${farm.id}/`,
-          { name: newName, address: newAddress },
-          {
-            headers: { Authorization: `Token ${token}` },
-          }
-        )
-        .then((response) => {
-          updateFarms(farms.map((f) => (f.id === farm.id ? response.data : f)));
-          setActiveFarm(response.data);
-          alert('Farm updated successfully!');
-        })
-        .catch((error) => {
-          console.error('Error updating farm:', error);
-          alert('Failed to update farm.');
-        });
     }
   };
 
@@ -149,36 +144,29 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   };
 
   const handleFarmChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const farmId = e.target.value; // This might be a string from the dropdown
-    const selectedFarm = farms.find((farm) => farm.id.toString() === farmId); // Ensure both are strings
+    const farmId = e.target.value;
+    const selectedFarm = farms.find((farm) => farm.id.toString() === farmId);
 
     if (selectedFarm) {
-      setActiveFarm(selectedFarm); // Set active farm using context method
-      console.log('Active farm set to:', selectedFarm); // Helpful logging
+      setActiveFarm(selectedFarm);
     } else {
       console.error('Selected farm not found in the list:', farmId);
     }
   };
 
-  // Ensure this part is added right after the state set to check the updated value
-  useEffect(() => {
-    console.log('Currently active farm:', activeFarm);
-  }, [activeFarm]);
-
-  const getNavLinkClass = (path) => {
+  const getNavLinkClass = (path: string) => {
     return location.pathname === path ? 'nav-link active' : 'nav-link';
   };
-  const location = useLocation();
 
+  const location = useLocation();
   const trigger = useRef<any>(null);
   const sidebar = useRef<any>(null);
 
   const storedSidebarExpanded = localStorage.getItem('sidebar-expanded');
-  const [sidebarExpanded] = useState(
+  const [sidebarExpanded, setSidebarExpanded] = useState(
     storedSidebarExpanded === null ? false : storedSidebarExpanded === 'true'
   );
 
-  // close on click outside
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
       if (!sidebar.current || !trigger.current) return;
@@ -194,7 +182,6 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     return () => document.removeEventListener('click', clickHandler);
   });
 
-  // close if the esc key is pressed
   useEffect(() => {
     const keyHandler = ({ keyCode }: KeyboardEvent) => {
       if (!sidebarOpen || keyCode !== 27) return;
@@ -220,7 +207,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}
     >
-      {/* <!-- SIDEBAR HEADER --> */}
+      {/* SIDEBAR HEADER */}
       <div className="sidebar-header">
         <NavLink to="/" className="sidebar-logo-link">
           <img
@@ -254,11 +241,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
           </svg>
         </button>
       </div>
-      {/* <!-- SIDEBAR HEADER --> */}
+      {/* SIDEBAR HEADER */}
 
       <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
         {/* Dropdown for selecting active farm */}
-
         <select
           onChange={handleFarmChange}
           value={activeFarm?.id || ''}
@@ -270,72 +256,53 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             </option>
           ))}
         </select>
-        {/* <!-- Sidebar Menu --> */}
+        {/* Sidebar Menu */}
         <nav className="mt-5 px-4 py-4 lg:mt-9 lg:px-6">
-          {/* <!-- Menu Group --> */}
           <div>
             <h3 className="link-text-menu">MENU</h3>
-
             <ul className="mb-6 flex flex-col gap-1.5">
-              {/* <!-- Menu Item Dashboard --> */}
               <React.Fragment>
                 <NavLink to="/" className={getNavLinkClass('/')}>
                   {icons.Dashboard}
                   <span className="link-text">Dashboard</span>
                 </NavLink>
               </React.Fragment>
-              {/* <!-- Menu Item Dashboard --> */}
-
-              {/* <!-- Menu Item Calendar --> */}
               <li>
-                <NavLink
-                  to="/calendar"
-                  className={getNavLinkClass('/calendar')}
-                >
+                <NavLink to="/calendar" className={getNavLinkClass('/calendar')}>
                   {icons.Calendar}
                   <span className="link-text">Calendar</span>
                 </NavLink>
               </li>
-              {/* <!-- Menu Item Calendar --> */}
-
-              {/* <!-- Menu Item Task --> */}
               <React.Fragment>
                 <NavLink
-                  to="/tasks/task-kanban" // Adjust this to the actual route
+                  to="/tasks/task-kanban"
                   className={getNavLinkClass('/tasks')}
                 >
                   {icons.Tasks}
                   <span className="link-text">Tasks</span>
                 </NavLink>
               </React.Fragment>
-              {/* <!-- Menu Item Task --> */}
-              {/* <!-- Menu Item Section --> */}
               <NavLink
-                to="/SectionPage" // Adjust this to the actual route
+                to="/SectionPage"
                 className={getNavLinkClass('/section')}
               >
                 {icons.Section}
                 <span className="link-text">Section</span>
               </NavLink>
-              {/* <!-- Menu Item Inventory --> */}
               <NavLink
-                to="/InventoryPage" // Adjust this to the actual route
+                to="/InventoryPage"
                 className={getNavLinkClass('/inventory')}
               >
                 {icons.Inventory}
                 <span className="link-text">Inventory</span>
               </NavLink>
-              {/* <!-- Menu Item Section --> */}
-              {/* <!-- Menu Item Inventory --> */}
               <NavLink
-                to="/EmployeePage" // Adjust this to the actual route
+                to="/EmployeePage"
                 className={getNavLinkClass('/employees')}
               >
                 {icons.Employees}
                 <span className="link-text">Employees</span>
               </NavLink>
-
-              {/* <!-- Menu Item Employee --> */}
               <NavLink
                 to="/VehiclePage"
                 className={getNavLinkClass('/vehicle')}
@@ -346,26 +313,29 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             </ul>
           </div>
         </nav>
-        {/* <!-- Sidebar Menu --> */}
-        {/* Add Farm Button */}
-        <div className="mx-4 my-2">
-          <button
-            className="flex w-full items-center justify-center gap-2 rounded bg-green-500 px-4 py-2 text-white"
-            onClick={() => handleOpenDialog('add', null)}
-          >
-            <AddCircleOutlineIcon />
-            Add Farm
-          </button>
-        </div>
-        <div className="mx-4 my-2">
-          <button
-            className="flex w-full items-center justify-center gap-2 rounded bg-blue-500 px-4 py-2 text-white"
-            onClick={() => handleOpenDialog('edit', activeFarm)}
-          >
-            <EditIcon />
-            Edit Farm
-          </button>
-        </div>
+        {/* Add/Edit/Delete Farm Buttons */}
+        {isOwner && (
+          <div className="mx-4 my-2">
+            <button
+              className="flex w-full items-center justify-center gap-2 rounded bg-green-500 px-4 py-2 text-white"
+              onClick={() => handleOpenDialog('add', null)}
+            >
+              <AddCircleOutlineIcon />
+              Add Farm
+            </button>
+          </div>
+        )}
+        {isOwner && (
+          <div className="mx-4 my-2">
+            <button
+              className="flex w-full items-center justify-center gap-2 rounded bg-blue-500 px-4 py-2 text-white"
+              onClick={() => handleOpenDialog('edit', activeFarm)}
+            >
+              <EditIcon />
+              Edit Farm
+            </button>
+          </div>
+        )}
         <FarmFormDialog
           open={isDialogOpen}
           handleClose={handleCloseDialog}

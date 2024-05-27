@@ -3,10 +3,10 @@ from rest_framework.routers import DefaultRouter
 from .views import TaskViewSet, SubtaskViewSet,note_list,note_detail
 
 router = DefaultRouter()
-router.register(r"tasks", TaskViewSet, basename="task")  # Specifying the basename here
+router.register(r"tasks", TaskViewSet, basename="task")  
 router.register(
     r"subtasks", SubtaskViewSet, basename="subtask"
-)  # Good practice to specify here as well
+) 
 urlpatterns = [
     path("", include(router.urls)),
     path('note_list/', note_list, name='note-list'),

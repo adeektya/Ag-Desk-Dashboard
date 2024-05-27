@@ -131,3 +131,20 @@ class GenerateInvitationCodeView(APIView):
         new_code.save()
 
         return Response({"code": new_code.code}, status=status.HTTP_201_CREATED)
+
+
+class UserDetailView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        user_data = {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "is_owner": user.is_owner,
+            "is_employee": user.is_employee,
+            "is_approved": user.is_approved,
+        }
+        return Response(user_data)
