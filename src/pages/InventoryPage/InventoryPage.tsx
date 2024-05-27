@@ -69,7 +69,7 @@ const InventoryManagement: React.FC = () => {
 
   const fetchInventoryItems = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}inventory/?farm_id=${activeFarm.id}`);
+      const response = await axios.get(`${BASE_URL}/inventory/?farm_id=${activeFarm.id}`);
       const data = response.data;
       const updatedData = data.map((item: InventoryItem) => {
         const section = sections.find(sec => sec.id === Number(item.section_name));
