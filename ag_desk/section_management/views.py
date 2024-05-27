@@ -68,6 +68,17 @@ class BulkSectionItemView(APIView):
             else:
                 return Response({'error': 'ID not provided for updating.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'message': 'Bulk update successful.'})
+    def delete(self, request, format=None):
+        data = request.data
+        deleted_ids = []
+        for item_id in data:
+            try:
+                section_item = SectionItem.objects.get(pk=item_id)
+                section_item.delete()
+                deleted_ids.append(item_id)
+            except SectionItem.DoesNotExist:
+                pass  # You may choose to handle this case differently based on your requirements
+        return Response({'deleted_ids': deleted_ids, 'message': 'Bulk deletion successful.'})
 
     def patch(self, request, format=None):
         # Similar to PUT, but with partial updates
