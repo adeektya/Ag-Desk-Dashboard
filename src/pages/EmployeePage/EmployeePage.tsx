@@ -26,6 +26,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
+import BASE_URL from '../../../config';  // Adjust the path as needed
 
 import { GenerateCodeSection } from "./GenerateCode"
 import {
@@ -135,7 +136,7 @@ const EmployeePage = () => {
     }
     try {
       const response = await axios.get(
-        `http://127.0.0.1:8000/section/?farm_id=${activeFarm.id}`
+        `${BASE_URL}/section/?farm_id=${activeFarm.id}`
       );
       const fetchedSections = response.data.map((section) => ({
         id: section.id,
@@ -209,7 +210,7 @@ console.log("updatedSections"+updatedSections)
   
       const optionPromises = selectedRows.map((id) =>
         axios
-          .options(`http://127.0.0.1:8000/employee/${id}/`)
+          .options(`${BASE_URL}/employee/${id}/`)
           .then(() => ({ success: true, id }))
           .catch((error) => ({
             success: false,
@@ -261,7 +262,7 @@ console.log("updatedSections"+updatedSections)
 
       try {
         const response = await axios.get(
-          'http://127.0.0.1:8000/user/unapproved/',
+          `${BASE_URL}/user/unapproved/`,
           {
             headers: { Authorization: `Token ${token}` },
           }
@@ -285,7 +286,7 @@ console.log("updatedSections"+updatedSections)
 
     try {
       const response = await axios.put(
-        `http://127.0.0.1:8000/user/approve/${userId}/`,
+        `${BASE_URL}/user/approve/${userId}/`,
         { approve },
         {
           headers: {
@@ -312,7 +313,7 @@ console.log("updatedSections"+updatedSections)
       console.log('Photo URL:', params.value);
       
       // Return the Avatar component with the correct URL
-      return <Avatar src={params.value ? `http://127.0.0.1:8000${params.value}/` : ''} alt={params.row.name} />;
+      return <Avatar src={params.value ? `${BASE_URL}${params.value}/` : ''} alt={params.row.name} />;
     },
   },
     {

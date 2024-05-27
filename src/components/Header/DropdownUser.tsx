@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
 import { Logout, Person, Message, Settings } from '@mui/icons-material';
 import axios from 'axios';
+import BASE_URL from '../../../config';  // Adjust the path as needed
 
 const DropdownUser = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -17,7 +18,7 @@ const DropdownUser = () => {
 
   useEffect(() => {
     // Fetch profile data
-    axios.get('http://127.0.0.1:8000/profile/', {
+    axios.get(`${BASE_URL}/profile/`, {
       headers: {
         'Authorization': `Token ${localStorage.getItem('token')}`  // Adjust based on your authentication method
       }

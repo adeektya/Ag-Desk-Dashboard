@@ -19,6 +19,7 @@ import { Badge } from '@mui/material';
 import WarningIcon from '@mui/icons-material/Warning';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import './topcards.css';
+import BASE_URL from '../../../config';  // Adjust the path as needed
 
 
 
@@ -35,7 +36,7 @@ const DataStatsThree: React.FC = () => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          const response = await axios.get('http://127.0.0.1:8000/user/user/', {
+          const response = await axios.get(`${BASE_URL}/user/user/`, {
             headers: {
               Authorization: `Token ${token}`,
             },
@@ -55,7 +56,7 @@ const DataStatsThree: React.FC = () => {
     const fetchNotes = async () => {
       try {
         if (activeFarm) {
-        const response = await axios.get('http://127.0.0.1:8000/api/note_list/', {
+        const response = await axios.get(`${BASE_URL}/api/note_list/`, {
           params: {
             farm_id: activeFarm.id
           }
@@ -80,7 +81,7 @@ const DataStatsThree: React.FC = () => {
   
     const fetchInventoryItems = async () => {
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/inventory/?farm_id=${activeFarm.id}`);
+        const response = await axios.get(`${BASE_URL}/inventory/?farm_id=${activeFarm.id}`);
         const data = response.data.filter(inventoryitem => inventoryitem.status === 'needs repair'||inventoryitem.status === "service due");
         
         setInventory(data);
@@ -102,7 +103,7 @@ const DataStatsThree: React.FC = () => {
   const postNote = async (noteData) => {
     try {
       noteData.farm = activeFarm.id;
-      const response = await axios.post('http://127.0.0.1:8000/api/note_list/', noteData);
+      const response = await axios.post(`${BASE_URL}/api/note_list/`, noteData);
       console.log('Note posted successfully:', response.data);
       // Update the notes state to include the newly added note
       setNotes([...notes, response.data]);
@@ -116,7 +117,7 @@ const DataStatsThree: React.FC = () => {
   const handleToggleComplete = async (noteId) => {
     try {
       // Delete the note from the backend
-      await axios.delete(`http://127.0.0.1:8000/api/note_detail/${noteId}/`);
+      await axios.delete(`${BASE_URL}/api/note_detail/${noteId}/`);
   
       // Update the notes state to remove the deleted note
       const updatedNotes = notes.filter((note) => note.id !== noteId);

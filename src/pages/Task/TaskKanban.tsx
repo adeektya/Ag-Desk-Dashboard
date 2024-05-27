@@ -25,6 +25,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import SwimLane from '../../components/Swimlanes/SwimLane.js';
 import { fetchEmployees } from '../EmployeePage/api.js';
 import { useFarm } from '../../contexts/FarmContext';
+import BASE_URL from '../../../config';  // Adjust the path as needed
 
 interface TaskDetails {
   type: string;
@@ -102,7 +103,7 @@ const TaskKanban: React.FC = () => {
 
   const handleDeleteTask = async (taskId: number) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/api/tasks/${taskId}/`);
+      await axios.delete(`${BASE_URL}/api/tasks/${taskId}/`);
       console.log('Task deleted successfully');
       setKanbanData((prevState) => {
         let newState = { ...prevState };
@@ -137,7 +138,7 @@ const TaskKanban: React.FC = () => {
     if (activeFarm) {
       axios
 
-        .get(`http://127.0.0.1:8000/api/tasks/?farm_id=${activeFarm.id}`)
+        .get(`${BASE_URL}/api/tasks/?farm_id=${activeFarm.id}`)
         .then((response) => {
           const fetchedTasks = response.data;
           const tasksByStatus = fetchedTasks.reduce((acc, task) => {
@@ -201,7 +202,7 @@ const TaskKanban: React.FC = () => {
 
       try {
         const response = await axios.put(
-          `http://127.0.0.1:8000/api/tasks/${taskId}/`,
+          `${BASE_URL}/api/tasks/${taskId}/`,
           updatedTask,
           {
             headers: {
@@ -337,7 +338,7 @@ const TaskKanban: React.FC = () => {
       if (editingTaskId) {
         // Update existing task
         const response = await axios.put(
-          `http://127.0.0.1:8000/api/tasks/${editingTaskId}/`,
+          `${BASE_URL}/api/tasks/${editingTaskId}/`,
           JSON.stringify(taskData),
           {
             headers: {
@@ -362,7 +363,7 @@ const TaskKanban: React.FC = () => {
       } else {
         // Add new task
         const response = await axios.post(
-          'http://127.0.0.1:8000/api/tasks/',
+          `${BASE_URL}/api/tasks/`,
           JSON.stringify(taskData),
           {
             headers: {

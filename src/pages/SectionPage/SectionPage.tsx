@@ -27,6 +27,7 @@ import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import { useFarm } from '../../contexts/FarmContext';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import BASE_URL from '../../../config';  // Adjust the path as needed
 
 const SectionPage = () => {
   const { activeFarm } = useFarm();
@@ -47,7 +48,7 @@ const SectionPage = () => {
       return;
     }
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/section/?farm_id=${activeFarm.id}`);
+      const response = await axios.get(`${BASE_URL}/section/?farm_id=${activeFarm.id}`);
       setRows(response.data);
     } catch (error) {
       console.error('Failed to fetch Section', error);
@@ -71,7 +72,7 @@ const SectionPage = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/section/${id}/`);
+      await axios.delete(`${BASE_URL}/section/${id}/`);
       setRows(rows.filter((row) => row.id !== id));
     } catch (error) {
       console.error('Failed to delete section', error);
@@ -87,7 +88,7 @@ const SectionPage = () => {
     }
 
     const deletePromises = selectedRows.map((id) =>
-      axios.delete(`http://127.0.0.1:8000/section/${id}/`)
+      axios.delete(`${BASE_URL}/section/${id}/`)
         .then(() => ({ success: true, id }))
         .catch((error) => ({ success: false, id, error: error.message }))
     );
@@ -143,7 +144,7 @@ const SectionPage = () => {
       const updatedFormData = { ...values, farm: activeFarm.id };
       if (editMode) {
         try {
-          const response = await axios.put(`http://127.0.0.1:8000/section/${editingRow.id}/`, updatedFormData);
+          const response = await axios.put(`${BASE_URL}/section/${editingRow.id}/`, updatedFormData);
           const updatedRows = rows.map((row) => (row.id === editingRow.id ? response.data : row));
           setRows(updatedRows);
           handleClose();
@@ -152,7 +153,7 @@ const SectionPage = () => {
         }
       } else {
         try {
-          const response = await axios.post('http://127.0.0.1:8000/section/', updatedFormData);
+          const response = await axios.post(`${BASE_URL}/section/`, updatedFormData);
           setRows([...rows, response.data]);
           handleClose();
         } catch (error) {

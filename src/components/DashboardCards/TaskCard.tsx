@@ -12,6 +12,7 @@ import {
 import './taskcard.css';
 import { useFarm } from '../../contexts/FarmContext';
 import { TaskCardProps } from '../../types/TaskCardProps';
+import BASE_URL from '../../../config';  // Adjust the path as needed
 
 const TaskCardDashboard: React.FC = () => {
   const { activeFarm } = useFarm();
@@ -21,7 +22,7 @@ const TaskCardDashboard: React.FC = () => {
     // Fetch tasks from the API when the component mounts
     if (activeFarm) {
     axios
-      .get(`http://127.0.0.1:8000/api/tasks/?farm_id=${activeFarm.id}`)
+      .get(`${BASE_URL}/api/tasks/?farm_id=${activeFarm.id}`)
       .then((response) => {
         const incompleteTasks = response.data.filter(task => task.status !== 'completed');
         setTasks(incompleteTasks);
@@ -35,7 +36,7 @@ const TaskCardDashboard: React.FC = () => {
 
   const toggleTaskCompletion = (taskId, completed) => {
     axios
-      .patch(`http://127.0.0.1:8000/api/tasks/${taskId}/`, { status: 'completed' })
+      .patch(`${BASE_URL}/api/tasks/${taskId}/`, { status: 'completed' })
       .then((response) => {
         // Update the tasks state with the updated task data
         const updatedTask = response.data;

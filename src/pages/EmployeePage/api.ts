@@ -1,7 +1,7 @@
 import axios from "axios";
-
-export const API_URL = 'http://127.0.0.1:8000/employee/';
-export const USER_API_URL = 'http://127.0.0.1:8000/user/generate-code/';
+import BASE_URL from '../../../config';
+export const API_URL = `${BASE_URL}/employee/`;
+export const USER_API_URL = `${BASE_URL}/user/generate-code/`;
 
 export const generateInvitationCode = async () => {
   const token = localStorage.getItem('token'); // Get the auth token from storage

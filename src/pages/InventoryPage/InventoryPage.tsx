@@ -26,6 +26,7 @@ import DefaultLayout from '../../layout/DefaultLayout';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import axios from 'axios';
 import { useFarm } from '../../contexts/FarmContext';
+import BASE_URL from '../../../config';
 
 interface InventoryItem {
   id: number;
@@ -68,7 +69,7 @@ const InventoryManagement: React.FC = () => {
 
   const fetchInventoryItems = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/inventory/?farm_id=${activeFarm.id}`);
+      const response = await axios.get(`${BASE_URL}inventory/?farm_id=${activeFarm.id}`);
       const data = response.data;
       const updatedData = data.map((item: InventoryItem) => {
         const section = sections.find(sec => sec.id === Number(item.section_name));
@@ -85,7 +86,7 @@ const InventoryManagement: React.FC = () => {
 
   const fetchSections = async () => {
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/section/?farm_id=${activeFarm.id}`);
+      const response = await axios.get(`${BASE_URL}/section/?farm_id=${activeFarm.id}`);
       setSections(response.data);
     } catch (error) {
       console.error('Failed to fetch sections:', error);
@@ -97,7 +98,7 @@ const InventoryManagement: React.FC = () => {
 
   const handleOpenRepairDialog = (item: InventoryItem) => {
     const fullImageRepairUrl = item.image_repair
-      ? `http://127.0.0.1:8000${item.image_repair}`
+      ? `${BASE_URL}${item.image_repair}`
       : null;
     setSelectedRepairInventoryItem({ ...item, image_repair: fullImageRepairUrl });
     setShowRepairDialog(true);
@@ -222,7 +223,7 @@ const InventoryManagement: React.FC = () => {
     formData.append('farm', activeFarm.id.toString());
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/inventory/', formData, {
+      const response = await axios.post(`${BASE_URL}/inventory/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -255,7 +256,7 @@ const InventoryManagement: React.FC = () => {
 
   const handleDelete = async (item: InventoryItem) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/inventory/${item.id}/`);
+      await axios.delete(`${BASE_URL}/inventory/${item.id}/`);
       setInventoryItems((prevItems) => prevItems.filter((i) => i.id !== item.id));
     } catch (error) {
       console.error('Failed to delete inventory item:', error);
@@ -278,7 +279,7 @@ const InventoryManagement: React.FC = () => {
     formData.append('farm', activeFarm.id.toString());
 
     try {
-      await axios.put(`http://127.0.0.1:8000/inventory/${selectedInventoryItem?.id}/`, formData, {
+      await axios.put(`${BASE_URL}/inventory/${selectedInventoryItem?.id}/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

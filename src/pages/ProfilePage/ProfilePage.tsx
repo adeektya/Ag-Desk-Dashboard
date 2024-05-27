@@ -3,6 +3,7 @@ import { Container, TextField, Button, Typography, Box, Avatar, Grid, Paper } fr
 import axios from 'axios';
 import DefaultLayout from '../../layout/DefaultLayout';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
+import BASE_URL from '../../../config';  // Adjust the path as needed
 
 const Profile = () => {
     
@@ -24,7 +25,7 @@ const Profile = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
 
     useEffect(() => {
-        axios.get('http://127.0.0.1:8000/profile/', {
+        axios.get(`${BASE_URL}/profile/`, {
             headers: {
                 'Authorization': `Token ${localStorage.getItem('token')}`
             }
@@ -91,7 +92,7 @@ const Profile = () => {
         }
     
         try {
-            const response = await axios.put('http://127.0.0.1:8000/profile/', formData, {
+            const response = await axios.put(`${BASE_URL}/profile/`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Token ${localStorage.getItem('token')}`
@@ -148,7 +149,7 @@ const Profile = () => {
         formData.append('password', password);
 
         try {
-            const response = await axios.put('http://127.0.0.1:8000/profile/', formData, {
+            const response = await axios.put(`${BASE_URL}/profile/`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Token ${localStorage.getItem('token')}`

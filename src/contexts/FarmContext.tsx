@@ -6,8 +6,9 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react';
+import BASE_URL from '../../config';  // Adjust the path as needed
 
-const API_URL = 'http://127.0.0.1:8000/farm/farm/';
+const API_URL = `${BASE_URL}/farm/farm/`;
 interface Farm {
   id: string;
   name: string;

@@ -8,6 +8,7 @@ import Inventory2Icon from '@mui/icons-material/Inventory2';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CarRepairIcon from '@mui/icons-material/CarRepair';
 import GrassIcon from '@mui/icons-material/Grass';
+import BASE_URL from '../../../config';  // Adjust the path as needed
 
 import './sidebar.css';
 import axios from 'axios';
@@ -15,7 +16,7 @@ import { useFarm } from '../../contexts/FarmContext';
 import EditIcon from '@mui/icons-material/Edit';
 import FarmFormDialog from './farmform';
 
-const API_URL = 'http://127.0.0.1:8000/farm/farm/';
+const API_URL = `${BASE_URL}/farm/farm/`;
 
 const icons = {
   Dashboard: <DashboardIcon />,

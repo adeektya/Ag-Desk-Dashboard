@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const baseURL = 'http://127.0.0.1:8000/';
+import BASE_URL from '../../../config'; 
 
 export const registerUser = async (userData: any) => {
   // Basic client-side validation (Example: Check for empty fields)
@@ -9,7 +8,7 @@ export const registerUser = async (userData: any) => {
   }
 
   try {
-    const response = await axios.post(`${baseURL}user/register/`, {
+    const response = await axios.post(`${BASE_URL}/user/register/`, {
       username: userData.username,
       email: userData.email,
       password: userData.password,
@@ -38,7 +37,7 @@ export const registerUser = async (userData: any) => {
 
 export const loginUser = async (userData: any) => {
   try {
-    const response = await axios.post(`${baseURL}user/login/`, userData); // Remove the extra slash
+    const response = await axios.post(`${BASE_URL}/user/login/`, userData); // Remove the extra slash
     return response.data; // Returns data directly for simplicity
   } catch (error) {
     console.error(

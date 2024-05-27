@@ -26,6 +26,7 @@ import DefaultLayout from '../../layout/DefaultLayout';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 import axios from 'axios';
 import { useFarm } from '../../contexts/FarmContext';
+import BASE_URL from '../../../config';  // Adjust the path as needed
 
 interface Vehicle {
   id: number;
@@ -59,13 +60,13 @@ const VehicleManagement: React.FC = () => {
   const fetchVehicles = async () => {
     try {
       if (activeFarm) {
-        const response = await axios.get(`http://127.0.0.1:8000/vehicle/?farm_id=${activeFarm.id}`);
+        const response = await axios.get(`${BASE_URL}/vehicle/?farm_id=${activeFarm.id}`);
         const data = response.data;
         const sortedData = data
           .sort((a: Vehicle, b: Vehicle) => a.id - b.id)
           .map((vehicle: Vehicle) => ({
             ...vehicle,
-            image: vehicle.image ? `http://127.0.0.1:8000${vehicle.image}/` : null,
+            image: vehicle.image ? `${BASE_URL}${vehicle.image}/` : null,
           }));
         setVehicles(sortedData);
       }
@@ -79,7 +80,7 @@ const VehicleManagement: React.FC = () => {
 
   const handleOpenRepairDialog = (vehicle: Vehicle) => {
     const fullImageRepairUrl = vehicle.image_repair
-      ? `http://127.0.0.1:8000${vehicle.image_repair}`
+      ? `${BASE_URL}${vehicle.image_repair}`
       : null;
     setSelectedRepairVehicle({ ...vehicle, image_repair: fullImageRepairUrl });
     setShowRepairDialog(true);
@@ -229,7 +230,7 @@ const VehicleManagement: React.FC = () => {
     formData.append('farm', activeFarm.id.toString());
   
     try {
-      const response = await axios.post('http://127.0.0.1:8000/vehicle/', formData, {
+      const response = await axios.post(`${BASE_URL}/vehicle/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -283,7 +284,7 @@ const VehicleManagement: React.FC = () => {
   
   const handleDelete = async (vehicle: Vehicle) => {
     try {
-      await axios.delete(`http://127.0.0.1:8000/vehicle/${vehicle.id}/`);
+      await axios.delete(`${BASE_URL}/vehicle/${vehicle.id}/`);
       setVehicles((prevVehicles) =>
         prevVehicles.filter((item) => item.id !== vehicle.id)
       );
@@ -306,7 +307,7 @@ const VehicleManagement: React.FC = () => {
     formData.append('farm', activeFarm.id.toString());
 
     try {
-      await axios.put(`http://127.0.0.1:8000/vehicle/${selectedVehicle?.id}/`, formData, {
+      await axios.put(`${BASE_URL}/vehicle/${selectedVehicle?.id}/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

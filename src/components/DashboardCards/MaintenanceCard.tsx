@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import './maintenancecard.css';
 import { useFarm } from '../../contexts/FarmContext';
+import BASE_URL from '../../../config';  // Adjust the path as needed
 
 const EquipmentMaintenanceCard: React.FC = () => {
   const { activeFarm } = useFarm();
@@ -25,7 +26,7 @@ const EquipmentMaintenanceCard: React.FC = () => {
   const fetchVehicles = async () => {
     try {
       if (activeFarm) {
-        const response = await axios.get(`http://127.0.0.1:8000/vehicle/?farm_id=${activeFarm.id}`);
+        const response = await axios.get(`${BASE_URL}/vehicle/?farm_id=${activeFarm.id}`);
         const data = response.data;
 
         const today = new Date();

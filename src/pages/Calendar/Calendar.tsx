@@ -18,6 +18,8 @@ import axios from 'axios';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './calendar.css';
 import { useFarm } from '../../contexts/FarmContext';
+import BASE_URL from '../../../config';  // Adjust the path as needed
+
 
 moment.locale('en-GB');
 const localizer = momentLocalizer(moment);
@@ -45,7 +47,7 @@ const Calendar = () => {
     if (!activeFarm) return;
 
     axios
-      .get(`http://127.0.0.1:8000/calendar/events/?farm_id=${activeFarm.id}`, {
+      .get(`${BASE_URL}/calendar/events/?farm_id=${activeFarm.id}`, {
         headers: { Authorization: `Token ${localStorage.getItem('token')}` },
       })
       .then((response) => {
@@ -65,7 +67,7 @@ const Calendar = () => {
   const fetchTasksWithDueDate = () => {
     if (!activeFarm) return; // Guard clause if no active farm is selected
   
-    axios.get(`http://127.0.0.1:8000/api/tasks/?farm_id=${activeFarm.id}`, { // Use active farm's ID in API
+    axios.get(`${BASE_URL}/api/tasks/?farm_id=${activeFarm.id}`, { // Use active farm's ID in API
       headers: { Authorization: `Token ${localStorage.getItem('token')}` },
     })
     .then((response) => {
@@ -149,7 +151,7 @@ const Calendar = () => {
 
     if (isTask) {
       axios
-        .put(`http://127.0.0.1:8000/api/tasks/${update.id}/`, eventData)
+        .put(`${BASE_URL}/api/tasks/${update.id}/`, eventData)
         .then((response) => {
           fetchTasksWithDueDate();
           setOpen(false);
@@ -160,7 +162,7 @@ const Calendar = () => {
         });
     } else {
       axios
-        .put(`http://127.0.0.1:8000/calendar/events/${update.id}/`, eventData)
+        .put(`${BASE_URL}/calendar/events/${update.id}/`, eventData)
         .then((response) => {
           fetchCalendarEvents();
           setOpen(false);
@@ -189,7 +191,7 @@ const Calendar = () => {
     };
 
     axios
-      .post('http://127.0.0.1:8000/calendar/events/', eventData, {
+      .post(`${BASE_URL}/calendar/events/`, eventData, {
         headers: {
           Authorization: `Token ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json',
@@ -208,7 +210,7 @@ const Calendar = () => {
   const deleteEvent = (event) => {
     if (isTask) {
       axios
-        .delete(`http://127.0.0.1:8000/api/tasks/${event.id}/`)
+        .delete(`${BASE_URL}/api/tasks/${event.id}/`)
         .then((response) => {
           fetchTasksWithDueDate();
           setOpen(false);
@@ -219,7 +221,7 @@ const Calendar = () => {
         });
     } else {
       axios
-        .delete(`http://127.0.0.1:8000/calendar/events/${event.id}/`)
+        .delete(`${BASE_URL}/calendar/events/${event.id}/`)
         .then((response) => {
           fetchCalendarEvents();
           setOpen(false);

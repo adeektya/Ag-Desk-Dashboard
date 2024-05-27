@@ -4,6 +4,7 @@ import { fetchEmployees } from '../../pages/EmployeePage/api';
 import './employeetable.css';
 import { useFarm } from '../../contexts/FarmContext';
 import { Avatar } from '@mui/material';
+import BASE_URL from '../../../config';  // Adjust the path as needed
 
 const EmployeeTable: React.FC = () => {
   const { activeFarm } = useFarm();
@@ -58,7 +59,7 @@ const EmployeeTable: React.FC = () => {
           {paginatedData.map((employee: any) => (
             <TableRow key={employee.id} className="table-row">
               <TableCell>
-                <Avatar src={`http://127.0.0.1:8000${employee.photo}`} alt={employee.name} className="employee-image" />
+                <Avatar src={`${BASE_URL}${employee.photo}`} alt={employee.name} className="employee-image" />
               </TableCell>
               <TableCell>{employee.name}</TableCell>
               <TableCell>{employee.role}</TableCell>
