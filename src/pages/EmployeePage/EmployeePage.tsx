@@ -457,6 +457,7 @@ console.log("updatedSections"+updatedSections)
                   {...formik.getFieldProps('name')}
                   error={formik.touched.name && Boolean(formik.errors.name)}
                   helperText={formik.touched.name && formik.errors.name}
+                  required
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -468,6 +469,7 @@ console.log("updatedSections"+updatedSections)
                   label="Role"
                   name="role"
                   {...formik.getFieldProps('role')}
+                  required
                 >
                   <MenuItem value="manager">Manager</MenuItem>
                   <MenuItem value="employee">Employee</MenuItem>
@@ -485,6 +487,7 @@ console.log("updatedSections"+updatedSections)
                   onChange={formik.handleChange}
                   error={formik.touched.section && Boolean(formik.errors.section)}
                   helperText={formik.touched.section && formik.errors.section}
+                  required
                 >
                   {sections.map((section) => (
                     <MenuItem key={section.id} value={section.name}>
@@ -510,6 +513,7 @@ console.log("updatedSections"+updatedSections)
                   helperText={
                     formik.touched.contactNumber && formik.errors.contactNumber
                   }
+                  required
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -523,6 +527,7 @@ console.log("updatedSections"+updatedSections)
                   {...formik.getFieldProps('email')}
                   error={formik.touched.email && Boolean(formik.errors.email)}
                   helperText={formik.touched.email && formik.errors.email}
+                  required
                 />
               </Grid>
 
@@ -548,6 +553,7 @@ console.log("updatedSections"+updatedSections)
                   label="Salary"
                   name="salary"
                   {...formik.getFieldProps('salary')}
+                  required
                 />
               </Grid>
 

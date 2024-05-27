@@ -274,7 +274,7 @@ const DataStatsThree: React.FC = () => {
         <Card className="card">
           <CardContent className="card-content">
             <Typography variant="h5" component="h2">
-              Inventory Maintance history
+              Inventory Maintance
             </Typography>
             <List>
               {inventory.map((item, index) => (

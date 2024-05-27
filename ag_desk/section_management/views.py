@@ -45,3 +45,31 @@ class SectionDetail(APIView):
             return Response(serializer.data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class BulkSectionItemView(APIView):
+    def post(self, request, format=None):
+        serializer = SectionItemSerializer(data=request.data, many=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, format=None):
+        data = request.data
+        for item_data in data:
+            item_id = item_data.get('id')
+            if item_id:
+                section_item = SectionItem.objects.get(pk=item_id)
+                serializer = SectionItemSerializer(section_item, data=item_data)
+                if serializer.is_valid():
+                    serializer.save()
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({'error': 'ID not provided for updating.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Bulk update successful.'})
+
+    def patch(self, request, format=None):
+        # Similar to PUT, but with partial updates
+        # You can implement PATCH method based on your requirements
+        pass
