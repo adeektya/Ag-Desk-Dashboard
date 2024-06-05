@@ -26,5 +26,12 @@ dist-ssr
 *.sln
 *.sw?
 
+
+
+# Django migration files
+*/migrations/*.py
+*/migrations/*.pyc
+
 # Byte-compiled / optimized / DLL files
-__pycache__
+__pycache__/
+*.py[cod]
