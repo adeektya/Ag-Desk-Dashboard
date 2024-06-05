@@ -13,7 +13,7 @@ export const generateInvitationCode = async () => {
         headers: { Authorization: `Token ${token}` },
       }
     );
-    return response.data.code; // Assuming the response will include the code
+    return response.data.code; // Return the generated code
   } catch (error) {
     console.error('Error generating invitation code:', error);
     throw error;
